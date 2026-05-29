@@ -1,0 +1,62 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Corredor Faroeste", "color": "#cd4239", "weight": 3 },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-44.99, -12.15], [-45.80, -12.09], [-45.20, -12.40],
+          [-44.50, -12.80], [-43.50, -13.20], [-42.60, -13.60],
+          [-41.67, -14.20], [-41.00, -14.50], [-40.84, -14.86]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Corredor Norte-Sul", "color": "#cd4239", "weight": 3 },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-40.50, -9.42], [-40.00, -9.80], [-39.40, -10.40],
+          [-39.20, -11.00], [-39.10, -11.60], [-38.97, -12.26]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Corredor Leste (Portos)", "color": "#cd4239", "weight": 3 },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-38.50, -12.97], [-38.32, -12.70], [-38.30, -12.61],
+          [-38.43, -12.14], [-38.97, -12.26]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Corredor Litorâneo Sul", "color": "#cd4239", "weight": 3 },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-38.50, -12.97], [-38.90, -13.50], [-39.00, -14.00],
+          [-39.00, -14.50], [-39.04, -14.79], [-39.28, -14.79],
+          [-39.40, -15.50], [-39.58, -16.38], [-39.74, -17.54],
+          [-39.55, -18.09]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Ramal Porto de Aratu", "color": "#cd4239", "weight": 2 },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-38.32, -12.70], [-38.48, -12.75], [-38.50, -12.78]
+        ]
+      }
+    }
+  ]
+}
