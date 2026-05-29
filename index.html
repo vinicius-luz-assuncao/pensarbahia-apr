@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pensar Bahia — Sistema de Estrutura Logística</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+/* ============================================================
+   DESIGN SYSTEM — adaptado do PostHog (cream canvas)
+   ============================================================ */
+:root {
+  --canvas: #eeefe9;
+  --ink: #23251d;
+  --body: #4d4f46;
+  --charcoal: #33342d;
+  --mute: #6c6e63;
+  --ash: #9b9c92;
+  --primary: #f7a501;
+  --primary-pressed: #dd9001;
+  --on-primary: #23251d;
+  --surface-card: #ffffff;
+  --surface-soft: #e5e7e0;
+  --surface-doc: #fcfcfa;
+  --surface-dark: #23251d;
+  --hairline: #bfc1b7;
+  --hairline-soft: #dcdfd2;
+  --on-dark: #ffffff;
+  --link-teal: #1078a3;
+  --accent-blue-soft: #dceaf6;
+  --accent-green-soft: #d9eddf;
+  --accent-red-soft: #f7d6d3;
+  --accent-purple-soft: #e7d8ee;
+  --accent-blue: #2c84e0;
+  --accent-green: #2c8c66;
+  --accent-red: #cd4239;
+  --accent-purple: #7c44a6;
+  --rounded-md: 6px;
+  --rounded-lg: 8px;
+  --rounded-full: 9999px;
+  --spacing-section: 80px;
+  --spacing-xxl: 32px;
+  --spacing-xl: 24px;
+  --spacing-lg: 16px;
+  --spacing-md: 12px;
+  --spacing-sm: 8px;
+  --spacing-xs: 4px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  font-family: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+  background: var(--canvas);
+  color: var(--body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   SLIDE SYSTEM
+   ============================================================ */
+.slides-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  overflow-y: auto;
+  padding: 40px 24px;
+}
+
+.slide.active {
+  opacity: 1;
+  visibility: visible;
+  z-index: 10;
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+.nav-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--surface-card);
+  border-top: 1px solid var(--hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-xl);
+  height: 60px;
+}
+
+.nav-bar .slide-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.nav-bar .dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--hairline);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.nav-bar .dot.active {
+  background: var(--primary);
+  width: 28px;
+  border-radius: 999px;
+}
+
+.nav-btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border: none;
+  border-radius: var(--rounded-md);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.nav-btn.prev {
+  background: var(--surface-soft);
+  color: var(--ink);
+}
+
+.nav-btn.next {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.nav-btn:not(:disabled):hover {
+  filter: brightness(0.95);
+}
+
+/* ============================================================
+   SLIDE 1 — CAPA
+   ============================================================ */
+#slide-1 {
+  background: var(--canvas);
+  text-align: center;
+  gap: var(--spacing-xl);
+}
+
+#slide-1 .brand-mark svg {
+  width: 80px;
+  height: 80px;
+}
+
+#slide-1 h1 {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.6px;
+  line-height: 1.2;
+}
+
+#slide-1 .subtitle {
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--charcoal);
+  max-width: 600px;
+}
+
+#slide-1 .subtitle span {
+  display: inline-block;
+  background: var(--primary);
+  color: var(--on-primary);
+  padding: 2px 14px;
+  border-radius: var(--rounded-full);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  margin-top: var(--spacing-lg);
+}
+
+#slide-1 .meta {
+  font-size: 14px;
+  color: var(--mute);
+  margin-top: var(--spacing-sm);
+}
+
+/* ============================================================
+   SLIDE 2 — APRESENTAÇÃO
+   ============================================================ */
+#slide-2 {
+  background: var(--canvas);
+  gap: var(--spacing-xl);
+}
+
+#slide-2 .content {
+  max-width: 720px;
+  width: 100%;
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-md);
+  padding: var(--spacing-xxl);
+}
+
+#slide-2 .content h2 {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.6px;
+  margin-bottom: var(--spacing-lg);
+}
+
+#slide-2 .content p {
+  margin-bottom: var(--spacing-lg);
+  color: var(--body);
+  line-height: 1.71;
+  font-size: 15px;
+}
+
+#slide-2 .content p:last-child {
+  margin-bottom: 0;
+}
+
+#slide-2 .highlight-row {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-xl);
+  flex-wrap: wrap;
+}
+
+#slide-2 .highlight-item {
+  flex: 1;
+  min-width: 160px;
+  background: var(--surface-soft);
+  border-radius: var(--rounded-md);
+  padding: var(--spacing-lg);
+  text-align: center;
+}
+
+#slide-2 .highlight-item .number {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+#slide-2 .highlight-item .label {
+  font-size: 13px;
+  color: var(--mute);
+  font-weight: 500;
+}
+
+/* ============================================================
+   SLIDE 3 — MAPA INTERATIVO
+   ============================================================ */
+#slide-3 {
+  background: var(--canvas);
+  padding: 20px 24px;
+  gap: 0;
+}
+
+#slide-3 .slide-inner {
+  max-width: 1280px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+#slide-3 .map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+#slide-3 .map-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+#slide-3 .layer-controls {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+#slide-3 .layer-btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-full);
+  background: var(--surface-card);
+  color: var(--body);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#slide-3 .layer-btn:hover {
+  border-color: var(--primary);
+  color: var(--ink);
+}
+
+#slide-3 .layer-btn.active {
+  background: var(--ink);
+  color: var(--on-dark);
+  border-color: var(--ink);
+}
+
+#slide-3 .layer-btn .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+#slide-3 .map-container-wrapper {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: var(--rounded-md);
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  background: var(--surface-doc);
+}
+
+#slide-3 #map-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Map loading overlay */
+#map-loading {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--surface-doc);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  gap: var(--spacing-lg);
+  transition: opacity 0.6s ease;
+}
+
+#map-loading.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#map-loading .spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--hairline);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#map-loading .load-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mute);
+}
+
+/* Info panels below map */
+#slide-3 .info-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+#slide-3 .info-card {
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-md);
+  padding: var(--spacing-lg);
+  transition: all 0.2s;
+  opacity: 0.6;
+}
+
+#slide-3 .info-card.active {
+  opacity: 1;
+  border-color: var(--ink);
+  box-shadow: 0 0 0 1px var(--ink);
+}
+
+#slide-3 .info-card .info-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--spacing-xs);
+}
+
+#slide-3 .info-card .info-title .badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 1px 8px;
+  border-radius: var(--rounded-full);
+}
+
+#slide-3 .info-card .info-title .badge.on { background: var(--accent-green-soft); color: var(--accent-green); }
+#slide-3 .info-card .info-title .badge.off { background: var(--surface-soft); color: var(--ash); }
+
+#slide-3 .info-card .info-desc {
+  font-size: 13px;
+  color: var(--body);
+  line-height: 1.5;
+}
+
+/* ============================================================
+   LEAFLET OVERRIDES
+   ============================================================ */
+.leaflet-control-attribution { font-size: 10px !important; }
+.leaflet-popup-content-wrapper { border-radius: var(--rounded-md) !important; }
+.leaflet-popup-content { font-family: 'IBM Plex Sans', sans-serif !important; font-size: 13px !important; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  #slide-1 h1 { font-size: 32px; }
+  #slide-1 .subtitle { font-size: 18px; }
+  #slide-2 .content { padding: var(--spacing-lg); }
+  #slide-3 .map-header { flex-direction: column; align-items: flex-start; gap: var(--spacing-sm); }
+  #slide-3 .info-panels { grid-template-columns: 1fr; }
+  .nav-bar { padding: var(--spacing-sm) var(--spacing-md); gap: var(--spacing-sm); }
+}
+
+@media (max-width: 480px) {
+  #slide-1 h1 { font-size: 26px; }
+  .slide { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="slides-wrapper">
+  <!-- ====== SLIDE 1 — CAPA ====== -->
+  <section class="slide active" id="slide-1">
+    <div class="brand-mark">
+      <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="38" stroke="var(--ink)" stroke-width="2" fill="none"/>
+        <text x="40" y="45" text-anchor="middle" font-family="IBM Plex Sans" font-weight="800" font-size="18" fill="var(--ink)">PB</text>
+        <!-- Simplified hedgehog-inspired silhouette -->
+        <path d="M22 54 Q 26 48 32 50 Q 36 52 34 56 Q 30 60 24 58 Z" fill="var(--body)" opacity="0.3"/>
+        <path d="M50 20 Q 54 16 60 18 Q 66 22 62 28 Q 58 32 52 28 Z" fill="var(--primary)" opacity="0.4"/>
+      </svg>
+    </div>
+    <h1>Pensar Bahia</h1>
+    <div class="subtitle">
+      Sistema de Estrutura Logística<br>
+      <span>Plano Estratégico Ferroviário</span>
+    </div>
+    <div class="meta">
+      Superintendência de Estudos Econômicos e Sociais da Bahia &mdash; SEI
+    </div>
+  </section>
+
+  <!-- ====== SLIDE 2 — APRESENTAÇÃO ====== -->
+  <section class="slide" id="slide-2">
+    <div class="content">
+      <h2>Apresentação do Projeto</h2>
+      <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+      </p>
+      <p>
+        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.
+      </p>
+      <p>
+        Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.
+      </p>
+
+      <div class="highlight-row">
+        <div class="highlight-item">
+          <div class="number">18</div>
+          <div class="label">Municípios com vocação logística</div>
+        </div>
+        <div class="highlight-item">
+          <div class="number">4</div>
+          <div class="label">Corredores ferroviários propostos</div>
+        </div>
+        <div class="highlight-item">
+          <div class="number">6</div>
+          <div class="label">Complexos portuários integrados</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== SLIDE 3 — MAPA INTERATIVO ====== -->
+  <section class="slide" id="slide-3">
+    <div class="slide-inner">
+      <div class="map-header">
+        <h2>Infraestrutura Logística da Bahia</h2>
+        <div class="layer-controls" id="layer-controls">
+          <button class="layer-btn active" data-layer="ferrovias">
+            <span class="dot" style="background:#cd4239"></span>
+            Ferrovias
+          </button>
+          <button class="layer-btn" data-layer="rodovias">
+            <span class="dot" style="background:#2c84e0"></span>
+            Rodovias
+          </button>
+          <button class="layer-btn" data-layer="setores">
+            <span class="dot" style="background:#7c44a6"></span>
+            Setores de Construção
+          </button>
+          <button class="layer-btn active" data-layer="polos">
+            <span class="dot" style="background:#2c8c66"></span>
+            Polos Logísticos
+          </button>
+        </div>
+      </div>
+
+      <div class="map-container-wrapper">
+        <div id="map-container"></div>
+        <div id="map-loading">
+          <div class="spinner"></div>
+          <div class="load-text">Carregando mapa interativo...</div>
+        </div>
+      </div>
+
+      <div class="info-panels" id="info-panels">
+        <div class="info-card active" data-info="ferrovias">
+          <div class="info-title">
+            🚂 Ferrovias
+            <span class="badge on">Ativo</span>
+          </div>
+          <div class="info-desc">
+            Corredores do Plano Estratégico Ferroviário da Bahia: Faroeste, Norte-Sul,
+            Litorâneo e Acesso Portuário. Proposta de unificação de bitola e novos ramais.
+          </div>
+        </div>
+        <div class="info-card" data-info="rodovias">
+          <div class="info-title">
+            🛣️ Rodovias
+            <span class="badge off">Inativo</span>
+          </div>
+          <div class="info-desc">
+            Principais eixos rodoviários federais e estaduais: BR-101, BR-116, BR-242 e
+            BA-001. Integração multimodal com ferrovias e portos.
+          </div>
+        </div>
+        <div class="info-card" data-info="setores">
+          <div class="info-title">
+            🏗️ Setores de Construção
+            <span class="badge off">Inativo</span>
+          </div>
+          <div class="info-desc">
+            Zonas prioritárias para expansão da malha: Oeste (grãos), Centro-Sul
+            (mineração), Norte (irrigação) e Litoral Sul (celulose).
+          </div>
+        </div>
+        <div class="info-card active" data-info="polos">
+          <div class="info-title">
+            📍 Polos Logísticos
+            <span class="badge on">Ativo</span>
+          </div>
+          <div class="info-desc">
+            18 municípios identificados com alto potencial logístico, incluindo
+            Salvador, Feira de Santana, Barreiras, Vitória da Conquista e Ilhéus.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ====== NAVEGAÇÃO ====== -->
+<nav class="nav-bar" id="nav-bar">
+  <button class="nav-btn prev" id="prev-slide" disabled>← Anterior</button>
+  <div class="slide-dots" id="slide-dots">
+    <button class="dot active" data-slide="0"></button>
+    <button class="dot" data-slide="1"></button>
+    <button class="dot" data-slide="2"></button>
+  </div>
+  <button class="nav-btn next" id="next-slide">Próximo →</button>
+</nav>
+
+<!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+<script>
+/* =============================================================
+   SLIDE NAVIGATION
+   ============================================================= */
+(function() {
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.dot');
+  const prevBtn = document.getElementById('prev-slide');
+  const nextBtn = document.getElementById('next-slide');
+  const total = slides.length;
+
+  function goTo(index) {
+    if (index < 0 || index >= total) return;
+    slides.forEach(s => s.classList.remove('active'));
+    slides[index].classList.add('active');
+    dots.forEach(d => d.classList.remove('active'));
+    dots[index].classList.add('active');
+    prevBtn.disabled = index === 0;
+    nextBtn.disabled = index === total - 1;
+    current = index;
+
+    // Trigger/update map when reaching slide 3
+    if (index === 2) {
+      if (!window.mapInitialized) initMap();
+      else if (window.mapInstance) setTimeout(function() { window.mapInstance.invalidateSize(); }, 250);
+    }
+  }
+
+  prevBtn.addEventListener('click', () => goTo(current - 1));
+  nextBtn.addEventListener('click', () => goTo(current + 1));
+  dots.forEach(d => d.addEventListener('click', () => goTo(parseInt(d.dataset.slide))));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goTo(current - 1);
+  });
+
+  window.goToSlide = goTo;
+})();
+
+
+/* =============================================================
+   MAP DATA — Bahia state approximate shapes
+   ============================================================= */
+const BAHIA_OUTLINE = [
+  [-8.53, -37.35], [-8.53, -39.50], [-9.00, -40.50],
+  [-9.50, -41.80], [-8.60, -44.30], [-9.20, -45.20],
+  [-10.20, -45.80], [-11.20, -46.50], [-12.20, -45.80],
+  [-12.80, -45.20], [-13.40, -44.60], [-14.00, -44.20],
+  [-14.60, -43.60], [-15.20, -43.00], [-15.80, -42.50],
+  [-16.40, -42.00], [-17.00, -41.50], [-17.60, -41.00],
+  [-18.20, -40.40], [-18.50, -39.80], [-17.80, -39.30],
+  [-16.80, -39.10], [-15.80, -39.00], [-14.80, -39.00],
+  [-13.80, -38.80], [-13.00, -38.60], [-12.40, -38.20],
+  [-11.80, -37.80], [-11.00, -37.40], [-10.00, -36.90],
+  [-9.20, -37.00], [-8.53, -37.35]
+];
+
+const FERROVIAS = [
+  {
+    name: 'Corredor Faroeste',
+    color: '#cd4239',
+    weight: 3,
+    coords: [
+      [-12.15, -44.99], [-12.09, -45.80], [-12.40, -45.20],
+      [-12.80, -44.50], [-13.20, -43.50], [-13.60, -42.60],
+      [-14.20, -41.67], [-14.50, -41.00], [-14.86, -40.84]
+    ]
+  },
+  {
+    name: 'Corredor Norte-Sul',
+    color: '#cd4239',
+    weight: 3,
+    coords: [
+      [-9.42, -40.50], [-9.80, -40.00], [-10.40, -39.40],
+      [-11.00, -39.20], [-11.60, -39.10], [-12.26, -38.97]
+    ]
+  },
+  {
+    name: 'Corredor Leste (Portos)',
+    color: '#cd4239',
+    weight: 3,
+    coords: [
+      [-12.97, -38.50], [-12.70, -38.32], [-12.61, -38.30],
+      [-12.14, -38.43], [-12.26, -38.97]
+    ]
+  },
+  {
+    name: 'Corredor Litorâneo Sul',
+    color: '#cd4239',
+    weight: 3,
+    coords: [
+      [-12.97, -38.50], [-13.50, -38.90], [-14.00, -39.00],
+      [-14.50, -39.00], [-14.79, -39.04], [-14.79, -39.28],
+      [-15.50, -39.40], [-16.38, -39.58], [-17.54, -39.74],
+      [-18.09, -39.55]
+    ]
+  },
+  {
+    name: 'Ramal Porto de Aratu',
+    color: '#cd4239',
+    weight: 2,
+    coords: [
+      [-12.70, -38.32], [-12.75, -38.48], [-12.78, -38.50]
+    ]
+  }
+];
+
+const RODOVIAS = [
+  {
+    name: 'BR-101',
+    color: '#2c84e0',
+    weight: 2.5,
+    coords: [
+      [-8.53, -37.35], [-9.20, -37.00], [-10.00, -36.90],
+      [-10.50, -37.00], [-11.00, -37.20], [-11.50, -37.40],
+      [-12.00, -37.60], [-12.40, -37.80], [-12.70, -38.00],
+      [-13.00, -38.40], [-13.50, -38.80], [-14.00, -39.00],
+      [-14.50, -39.10], [-15.00, -39.20], [-15.50, -39.30],
+      [-16.00, -39.40], [-16.50, -39.50], [-17.00, -39.50],
+      [-17.50, -39.60], [-18.00, -39.60], [-18.35, -39.80]
+    ]
+  },
+  {
+    name: 'BR-116',
+    color: '#2c84e0',
+    weight: 2.5,
+    coords: [
+      [-9.42, -40.50], [-10.00, -40.30], [-10.50, -39.80],
+      [-11.00, -39.50], [-11.50, -39.30], [-12.00, -39.20],
+      [-12.26, -38.97], [-12.50, -39.20], [-13.00, -39.50],
+      [-13.50, -39.80], [-14.00, -40.10], [-14.50, -40.40],
+      [-14.86, -40.84], [-15.50, -41.00], [-16.00, -41.00],
+      [-16.50, -40.80], [-17.00, -40.60], [-17.50, -40.40],
+      [-18.00, -40.20], [-18.35, -40.00]
+    ]
+  },
+  {
+    name: 'BR-242',
+    color: '#2c84e0',
+    weight: 2,
+    coords: [
+      [-12.97, -38.50], [-12.80, -39.00], [-12.60, -39.50],
+      [-12.50, -40.00], [-12.60, -40.50], [-12.80, -41.00],
+      [-13.00, -41.50], [-13.20, -42.00], [-13.40, -42.50],
+      [-13.20, -43.00], [-12.80, -43.50], [-12.40, -44.00],
+      [-12.15, -44.99]
+    ]
+  }
+];
+
+const SETORES_CONSTRUCAO = [
+  {
+    name: 'Setor Oeste — Grãos',
+    color: '#7c44a6',
+    fillOpacity: 0.12,
+    coords: [
+      [-11.50, -46.50], [-12.50, -46.00], [-13.00, -45.00],
+      [-12.50, -44.50], [-11.80, -44.80], [-11.00, -45.50]
+    ]
+  },
+  {
+    name: 'Setor Centro-Sul — Mineração',
+    color: '#7c44a6',
+    fillOpacity: 0.12,
+    coords: [
+      [-13.50, -42.50], [-14.50, -42.50], [-15.00, -41.50],
+      [-14.50, -40.80], [-13.80, -41.00], [-13.20, -41.80]
+    ]
+  },
+  {
+    name: 'Setor Norte — Irrigação',
+    color: '#7c44a6',
+    fillOpacity: 0.12,
+    coords: [
+      [-8.60, -40.50], [-9.50, -40.50], [-10.00, -39.50],
+      [-9.50, -39.00], [-8.80, -39.20], [-8.53, -39.80]
+    ]
+  },
+  {
+    name: 'Setor Litoral Sul — Celulose',
+    color: '#7c44a6',
+    fillOpacity: 0.12,
+    coords: [
+      [-15.50, -39.80], [-16.50, -39.80], [-17.00, -39.40],
+      [-16.50, -39.10], [-15.80, -39.20], [-15.20, -39.50]
+    ]
+  }
+];
+
+const POLOS_LOGISTICOS = [
+  { name: 'Salvador', coords: [-12.97, -38.50], type: 'Porto' },
+  { name: 'Feira de Santana', coords: [-12.26, -38.97], type: 'Entroncamento' },
+  { name: 'Vitória da Conquista', coords: [-14.86, -40.84], type: 'Centro Regional' },
+  { name: 'Barreiras', coords: [-12.15, -44.99], type: 'Agronegócio' },
+  { name: 'Ilhéus', coords: [-14.79, -39.04], type: 'Porto' },
+  { name: 'Itabuna', coords: [-14.79, -39.28], type: 'Centro Regional' },
+  { name: 'Juazeiro', coords: [-9.42, -40.50], type: 'Irrigação' },
+  { name: 'Camaçari', coords: [-12.70, -38.32], type: 'Industrial' },
+  { name: 'Alagoinhas', coords: [-12.14, -38.43], type: 'Entroncamento' },
+  { name: 'Eunápolis', coords: [-16.38, -39.58], type: 'Centro Regional' },
+  { name: 'Teixeira de Freitas', coords: [-17.54, -39.74], type: 'Agronegócio' },
+  { name: 'Jequié', coords: [-13.86, -40.07], type: 'Entroncamento' },
+  { name: 'Brumado', coords: [-14.20, -41.67], type: 'Mineração' },
+  { name: 'Luís Eduardo Magalhães', coords: [-12.09, -45.80], type: 'Agronegócio' },
+  { name: 'Lauro de Freitas', coords: [-12.90, -38.33], type: 'Metropolitano' },
+  { name: 'Simões Filho', coords: [-12.79, -38.40], type: 'Industrial' },
+  { name: 'Candeias', coords: [-12.68, -38.48], type: 'Porto/Refino' },
+  { name: 'Dias d\'Ávila', coords: [-12.61, -38.30], type: 'Industrial' }
+];
+
+
+/* =============================================================
+   MAP CONTROLLER
+   ============================================================= */
+let mapInitialized = false;
+let mapInstance = null;
+let mapLayers = {};
+let activeLayers = { ferrovias: true, rodovias: false, setores: false, polos: true };
+let markers = [];
+
+const LAYER_COLORS = {
+  ferrovias: { line: '#cd4239', label: 'Ferrovias' },
+  rodovias: { line: '#2c84e0', label: 'Rodovias' },
+  setores: { line: '#7c44a6', label: 'Setores' },
+  polos: { line: '#2c8c66', label: 'Polos' }
+};
+
+// Map legend control
+var LegendControl = L.Control.extend({
+  onAdd: function() {
+    var div = L.DomUtil.create('div', 'map-legend');
+    div.innerHTML = '<div style="background:rgba(255,255,255,0.95);padding:8px 12px;border-radius:6px;font-size:12px;font-family:\'IBM Plex Sans\',sans-serif;line-height:1.6;border:1px solid #dcdfd2">' +
+      '<div style="font-weight:600;margin-bottom:4px;color:#23251d">Legenda</div>' +
+      '<div><span style="display:inline-block;width:12px;height:3px;background:#cd4239;margin-right:6px;vertical-align:middle"></span>Ferrovias</div>' +
+      '<div><span style="display:inline-block;width:12px;height:2px;background:#2c84e0;margin-right:6px;vertical-align:middle;border-top:2px dashed #2c84e0"></span>Rodovias</div>' +
+      '<div><span style="display:inline-block;width:12px;height:10px;background:#7c44a6;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #7c44a6"></span>Setores</div>' +
+      '<div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2c8c66;margin-right:6px;vertical-align:middle"></span>Polos Logísticos</div>' +
+      '</div>';
+    return div;
+  }
+});
+
+function initMap() {
+  if (mapInitialized) {
+    if (mapInstance) mapInstance.invalidateSize();
+    return;
+  }
+  mapInitialized = true;
+
+  const container = document.getElementById('map-container');
+  if (!container || container._leaflet_id) return;
+
+  mapInstance = L.map('map-container', {
+    center: [-13.5, -42.0],
+    zoom: 6,
+    zoomControl: true,
+    attributionControl: true
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(mapInstance);
+
+  // Bahia outline
+  L.polygon(BAHIA_OUTLINE, {
+    color: '#23251d',
+    weight: 1.5,
+    fillColor: '#fcfcfa',
+    fillOpacity: 0.3
+  }).addTo(mapInstance);
+
+  // Ferrovias layer
+  mapLayers.ferrovias = L.layerGroup().addTo(mapInstance);
+  FERROVIAS.forEach(f => {
+    L.polyline(f.coords, {
+      color: f.color,
+      weight: f.weight,
+      opacity: 0.85
+    }).bindPopup(f.name).addTo(mapLayers.ferrovias);
+  });
+
+  // Rodovias layer
+  mapLayers.rodovias = L.layerGroup();
+  RODOVIAS.forEach(r => {
+    L.polyline(r.coords, {
+      color: r.color,
+      weight: r.weight,
+      opacity: 0.7,
+      dashArray: '6 4'
+    }).bindPopup(r.name).addTo(mapLayers.rodovias);
+  });
+
+  // Setores layer
+  mapLayers.setores = L.layerGroup();
+  SETORES_CONSTRUCAO.forEach(s => {
+    L.polygon(s.coords, {
+      color: s.color,
+      weight: 1.5,
+      fillColor: s.color,
+      fillOpacity: s.fillOpacity
+    }).bindPopup(s.name).addTo(mapLayers.setores);
+  });
+
+  // Polos layer
+  mapLayers.polos = L.layerGroup().addTo(mapInstance);
+  const greenIcon = L.divIcon({
+    className: '',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#2c8c66;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -10]
+  });
+  POLOS_LOGISTICOS.forEach(p => {
+    const m = L.marker(p.coords, { icon: greenIcon })
+      .bindPopup('<strong>' + p.name + '</strong><br>' + p.type)
+      .addTo(mapLayers.polos);
+    markers.push(m);
+  });
+
+  // Map legend
+  var legend = new LegendControl({ position: 'bottomleft' });
+  legend.addTo(mapInstance);
+
+  // Ensure map renders correctly
+  setTimeout(() => { mapInstance.invalidateSize(); }, 100);
+
+  // Hide loading
+  const loading = document.getElementById('map-loading');
+  if (loading) loading.classList.add('hidden');
+}
+
+
+/* =============================================================
+   LAYER TOGGLE
+   ============================================================= */
+function toggleLayer(name) {
+  if (!mapLayers[name]) return;
+  activeLayers[name] = !activeLayers[name];
+
+  if (activeLayers[name]) {
+    mapInstance.addLayer(mapLayers[name]);
+  } else {
+    mapInstance.removeLayer(mapLayers[name]);
+  }
+
+  // Update button styling
+  document.querySelectorAll('.layer-btn[data-layer="' + name + '"]').forEach(btn => {
+    btn.classList.toggle('active', activeLayers[name]);
+  });
+
+  // Update info cards
+  document.querySelectorAll('.info-card[data-info="' + name + '"]').forEach(card => {
+    card.classList.toggle('active', activeLayers[name]);
+    const badge = card.querySelector('.badge');
+    if (badge) {
+      badge.className = 'badge ' + (activeLayers[name] ? 'on' : 'off');
+      badge.textContent = activeLayers[name] ? 'Ativo' : 'Inativo';
+    }
+  });
+
+  if (mapInstance) mapInstance.invalidateSize();
+}
+
+// Layer button event binding
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.layer-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      toggleLayer(this.dataset.layer);
+    });
+  });
+
+  // Pre-mark active layers on info cards
+  Object.keys(activeLayers).forEach(key => {
+    if (activeLayers[key]) {
+      document.querySelectorAll('.info-card[data-info="' + key + '"]').forEach(card => {
+        card.classList.add('active');
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>
