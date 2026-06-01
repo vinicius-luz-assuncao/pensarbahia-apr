@@ -2,6 +2,8 @@
 
 Apresentação dinâmica do **Sistema de Estrutura Logística** da Bahia, desenvolvida para o projeto Pensar Bahia da Superintendência de Estudos Econômicos e Sociais da Bahia (SEI).
 
+> **Serviço de mapeamento utilizado:** [uMap](https://umap.openstreetmap.fr/) — editor visual gratuito sobre OpenStreetMap. Os shapes são desenhados no uMap e exportados como GeoJSON para o projeto. Consulte [`docs/MAPEAMENTO.md`](docs/MAPEAMENTO.md) para o guia completo.
+
 ## Stack
 
 - **Apresentação**: HTML/CSS/JS puro com sistema de slides customizado
