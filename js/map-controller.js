@@ -4,14 +4,17 @@
 let mapInitialized = false;
 let mapInstance = null;
 let mapLayers = {};
-let activeLayers = { ferrovias: true, rodovias: false, setores: false, polos: true };
+let activeLayers = { ferrovias: true, rodovias: false, setores: false, polos: true, alternativa1: false, alternativa2: false, entorno: false };
 let markers = [];
 
 const LAYER_COLORS = {
   ferrovias: { line: '#cd4239', label: 'Ferrovias' },
   rodovias: { line: '#2c84e0', label: 'Rodovias' },
   setores: { line: '#7c44a6', label: 'Setores' },
-  polos: { line: '#2c8c66', label: 'Polos' }
+  polos: { line: '#2c8c66', label: 'Polos' },
+  alternativa1: { line: '#d35400', label: 'Alternativa I' },
+  alternativa2: { line: '#e67e22', label: 'Alternativa II' },
+  entorno: { line: '#1abc9c', label: 'Entorno Baía' }
 };
 
 // Map legend control
@@ -24,6 +27,9 @@ var LegendControl = L.Control.extend({
       '<div><span style="display:inline-block;width:12px;height:2px;background:#2c84e0;margin-right:6px;vertical-align:middle;border-top:2px dashed #2c84e0"></span>Rodovias</div>' +
       '<div><span style="display:inline-block;width:12px;height:10px;background:#7c44a6;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #7c44a6"></span>Setores</div>' +
       '<div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2c8c66;margin-right:6px;vertical-align:middle"></span>Polos Logísticos</div>' +
+      '<div><span style="display:inline-block;width:12px;height:10px;background:#d35400;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #d35400"></span>Alternativa I</div>' +
+      '<div><span style="display:inline-block;width:12px;height:10px;background:#e67e22;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #e67e22"></span>Alternativa II</div>' +
+      '<div><span style="display:inline-block;width:12px;height:10px;background:#1abc9c;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #1abc9c"></span>Entorno Baía</div>' +
       '</div>';
     return div;
   }
@@ -76,6 +82,16 @@ function initMap() {
   mapLayers.polos = L.layerGroup();
   loadPolosFromGeoJSON();
 
+  // Camadas ESRI
+  mapLayers.alternativa1 = L.layerGroup();
+  loadESRILayer('alternativa1', 'data/Alternativa I.json', styleAlternativa1);
+
+  mapLayers.alternativa2 = L.layerGroup();
+  loadESRILayer('alternativa2', 'data/Alternativa II.json', styleAlternativa2);
+
+  mapLayers.entorno = L.layerGroup();
+  loadESRILayer('entorno', 'data/EntornoBaíaCIA.json', styleEntorno);
+
   // Map legend
   var legend = new LegendControl({ position: 'bottomleft' });
   legend.addTo(mapInstance);
@@ -106,6 +122,65 @@ function loadGeoJSONLayer(name, url, fallbackData, styleFn, renderFn) {
       renderFn(fallbackData);
       if (activeLayers[name]) mapInstance.addLayer(mapLayers[name]);
     });
+}
+
+
+/* =============================================================
+   ESRI JSON → GEOJSON CONVERTER
+   ============================================================= */
+function flattenESRICoords(item) {
+  if (Array.isArray(item) && item.length === 2 && typeof item[0] === 'number') return [item];
+  if (Array.isArray(item)) {
+    var result = [];
+    item.forEach(function(el) { result = result.concat(flattenESRICoords(el)); });
+    return result;
+  }
+  if (item && typeof item === 'object' && item.c) return flattenESRICoords(item.c);
+  return [];
+}
+
+function esriJsonToGeoJSON(esriJson) {
+  var geoType;
+  if (esriJson.geometryType === 'esriGeometryPolygon') geoType = 'Polygon';
+  else if (esriJson.geometryType === 'esriGeometryPolyline') geoType = 'LineString';
+  else if (esriJson.geometryType === 'esriGeometryPoint') geoType = 'Point';
+  else return null;
+
+  return {
+    type: 'FeatureCollection',
+    features: esriJson.features.map(function(f) {
+      var props = {};
+      var attrs = f.attributes || {};
+      Object.keys(attrs).forEach(function(k) { props[k.toLowerCase()] = attrs[k]; });
+      var g = f.geometry;
+      var rings = g.rings || g.curveRings || null;
+      if (!rings) return null;
+      var coords = rings.map(function(ring) { return flattenESRICoords(ring); });
+      return {
+        type: 'Feature',
+        properties: props,
+        geometry: { type: geoType, coordinates: coords }
+      };
+    }).filter(function(f) { return f !== null; })
+  };
+}
+
+function loadESRILayer(name, url, styleFn) {
+  fetch(url)
+    .then(function(r) { if (!r.ok) throw new Error('ESRI JSON not found'); return r.json(); })
+    .then(function(esriJson) {
+      var gj = esriJsonToGeoJSON(esriJson);
+      if (!gj) return;
+      L.geoJSON(gj, {
+        style: styleFn,
+        onEachFeature: function(f, l) {
+          var n = f.properties.name || f.properties.nome || '';
+          if (n) l.bindPopup(n);
+        }
+      }).addTo(mapLayers[name]);
+      if (activeLayers[name]) mapInstance.addLayer(mapLayers[name]);
+    })
+    .catch(function() {});
 }
 
 
@@ -141,6 +216,17 @@ function styleRodovias(f) {
 
 function styleSetores(f) {
   return { color: f.properties.color || '#7c44a6', weight: 1.5, fillColor: f.properties.color || '#7c44a6', fillOpacity: f.properties.fillOpacity || 0.12 };
+}
+
+
+function styleAlternativa1(f) {
+  return { color: '#d35400', weight: 2, fillColor: '#d35400', fillOpacity: 0.15 };
+}
+function styleAlternativa2(f) {
+  return { color: '#e67e22', weight: 2, fillColor: '#e67e22', fillOpacity: 0.15 };
+}
+function styleEntorno(f) {
+  return { color: '#1abc9c', weight: 2, fillColor: '#1abc9c', fillOpacity: 0.12 };
 }
 
 

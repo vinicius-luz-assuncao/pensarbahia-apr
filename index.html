@@ -84,6 +84,18 @@
             <span class="dot" style="background:#2c8c66"></span>
             Polos Logísticos
           </button>
+          <button class="layer-btn" data-layer="alternativa1">
+            <span class="dot" style="background:#d35400"></span>
+            Alternativa I
+          </button>
+          <button class="layer-btn" data-layer="alternativa2">
+            <span class="dot" style="background:#e67e22"></span>
+            Alternativa II
+          </button>
+          <button class="layer-btn" data-layer="entorno">
+            <span class="dot" style="background:#1abc9c"></span>
+            Entorno Baía
+          </button>
           <span class="layer-sep"></span>
           <button class="layer-btn base active" data-baselayer="mapa">🗺 Mapa</button>
           <button class="layer-btn base" data-baselayer="satelite">🛰 Satélite</button>
@@ -139,6 +151,36 @@
             Salvador, Feira de Santana, Barreiras, Vitória da Conquista e Ilhéus.
           </div>
         </div>
+        <div class="info-card" data-info="alternativa1">
+          <div class="info-title">
+            🔶 Alternativa I
+            <span class="badge off">Inativo</span>
+          </div>
+          <div class="info-desc">
+            Traçado alternativo com 186,11 ha para expansão do sistema logístico
+            na região do Centro Industrial de Aratu (CIA).
+          </div>
+        </div>
+        <div class="info-card" data-info="alternativa2">
+          <div class="info-title">
+            🟠 Alternativa II
+            <span class="badge off">Inativo</span>
+          </div>
+          <div class="info-desc">
+            Traçado alternativo com 902,11 ha para expansão logística,
+            abrangendo área estendida no entorno do CIA.
+          </div>
+        </div>
+        <div class="info-card" data-info="entorno">
+          <div class="info-title">
+            🟢 Entorno Baía
+            <span class="badge off">Inativo</span>
+          </div>
+          <div class="info-desc">
+            Polígono do Entorno da Baía de Todos os Santos — 19.409,24 ha —
+            delimitando a região de influência do CIA e do Porto de Aratu.
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -146,13 +188,13 @@
 
 <!-- ====== NAVEGAÇÃO ====== -->
 <nav class="nav-bar" id="nav-bar">
-  <button class="nav-btn prev" id="prev-slide" disabled>← Anterior</button>
+  <button class="nav-btn prev" id="prev-slide" disabled><span class="nav-icon">←</span><span class="nav-label"> Anterior</span></button>
   <div class="slide-dots" id="slide-dots">
     <button class="dot active" data-slide="0"></button>
     <button class="dot" data-slide="1"></button>
     <button class="dot" data-slide="2"></button>
   </div>
-  <button class="nav-btn next" id="next-slide">Próximo →</button>
+  <button class="nav-btn next" id="next-slide"><span class="nav-label">Próximo </span><span class="nav-icon">→</span></button>
 </nav>
 
 <!-- ============================================================
