@@ -4,7 +4,7 @@
 let mapInitialized = false;
 let mapInstance = null;
 let mapLayers = {};
-let activeLayers = { ferrovias: true, rodovias: false, setores: false, polos: true, alternativa1: false, alternativa2: false, entorno: false };
+let activeLayers = { ferrovias: true, rodovias: false, setores: false, polos: true, alternativa1: false, alternativa2: false, entorno: false, parquebts_pontos: false, parquebts_linhas: false, parquebts_poligonos: false };
 let markers = [];
 
 const LAYER_COLORS = {
@@ -14,7 +14,10 @@ const LAYER_COLORS = {
   polos: { line: '#2c8c66', label: 'Polos' },
   alternativa1: { line: '#d35400', label: 'Alternativa I' },
   alternativa2: { line: '#e67e22', label: 'Alternativa II' },
-  entorno: { line: '#1abc9c', label: 'Entorno Baía' }
+  entorno: { line: '#1abc9c', label: 'Entorno Baía' },
+  parquebts_pontos: { line: '#e84393', label: 'BTS - Cidades' },
+  parquebts_linhas: { line: '#fd79a8', label: 'BTS - Rotas' },
+  parquebts_poligonos: { line: '#6c5ce7', label: 'BTS - Áreas' }
 };
 
 // Map legend control
@@ -30,6 +33,9 @@ var LegendControl = L.Control.extend({
       '<div><span style="display:inline-block;width:12px;height:10px;background:#d35400;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #d35400"></span>Alternativa I</div>' +
       '<div><span style="display:inline-block;width:12px;height:10px;background:#e67e22;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #e67e22"></span>Alternativa II</div>' +
       '<div><span style="display:inline-block;width:12px;height:10px;background:#1abc9c;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #1abc9c"></span>Entorno Baía</div>' +
+      '<div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#e84393;margin-right:6px;vertical-align:middle"></span>BTS Cidades</div>' +
+      '<div><span style="display:inline-block;width:12px;height:2px;background:#fd79a8;margin-right:6px;vertical-align:middle"></span>BTS Rotas</div>' +
+      '<div><span style="display:inline-block;width:12px;height:10px;background:#6c5ce7;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #6c5ce7"></span>BTS Áreas</div>' +
       '</div>';
     return div;
   }
@@ -91,6 +97,12 @@ function initMap() {
 
   mapLayers.entorno = L.layerGroup();
   loadESRILayer('entorno', 'data/EntornoBaíaCIA.json', styleEntorno);
+
+  // Camadas Parque BTS (split por tipo de geometria)
+  mapLayers.parquebts_pontos = L.layerGroup();
+  mapLayers.parquebts_linhas = L.layerGroup();
+  mapLayers.parquebts_poligonos = L.layerGroup();
+  loadParqueBTS();
 
   // Map legend
   var legend = new LegendControl({ position: 'bottomleft' });
@@ -179,6 +191,44 @@ function loadESRILayer(name, url, styleFn) {
         }
       }).addTo(mapLayers[name]);
       if (activeLayers[name]) mapInstance.addLayer(mapLayers[name]);
+    })
+    .catch(function() {});
+}
+
+
+function loadParqueBTS() {
+  fetch('data/parque_bts.geojson')
+    .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+    .then(function(gj) {
+      gj.features.forEach(function(f) {
+        var gtype = f.geometry.type;
+        var layer, style, pointStyle;
+        if (gtype === 'Point') {
+          layer = mapLayers.parquebts_pontos;
+          pointStyle = {
+            radius: 6, color: '#e84393', fillColor: '#e84393', fillOpacity: 0.6, weight: 2
+          };
+        } else if (gtype === 'LineString' || gtype === 'MultiLineString') {
+          layer = mapLayers.parquebts_linhas;
+          style = { color: '#fd79a8', weight: 2.5, opacity: 0.7 };
+        } else if (gtype === 'Polygon' || gtype === 'MultiPolygon') {
+          layer = mapLayers.parquebts_poligonos;
+          style = { color: '#6c5ce7', weight: 2, fillColor: '#6c5ce7', fillOpacity: 0.12 };
+        } else { return; }
+        var leafletObj;
+        if (pointStyle) {
+          var coords = [f.geometry.coordinates[1], f.geometry.coordinates[0]];
+          leafletObj = L.circleMarker(coords, pointStyle);
+        } else {
+          leafletObj = L.geoJSON(f, { style: style });
+        }
+        var n = f.properties.name || f.properties.Nome || f.properties.type || '';
+        if (n) leafletObj.bindPopup(n);
+        if (leafletObj.addTo) leafletObj.addTo(layer);
+      });
+      Object.keys(activeLayers).forEach(function(k) {
+        if (activeLayers[k] && mapLayers[k]) mapInstance.addLayer(mapLayers[k]);
+      });
     })
     .catch(function() {});
 }
