@@ -1,350 +1,292 @@
-/* =============================================================
-   MAP CONTROLLER
-   ============================================================= */
 let mapInitialized = false;
 let mapInstance = null;
 let mapLayers = {};
-let activeLayers = { ferrovias: true, rodovias: false, setores: false, polos: true, alternativa1: false, alternativa2: false, entorno: false, parquebts_pontos: false, parquebts_linhas: false, parquebts_poligonos: false };
-let markers = [];
+let activeLayers = {};
+let fetchCache = {};
+var subLayers = {};
+var lastToggled = null;
 
-const LAYER_COLORS = {
-  ferrovias: { line: '#cd4239', label: 'Ferrovias' },
-  rodovias: { line: '#2c84e0', label: 'Rodovias' },
-  setores: { line: '#7c44a6', label: 'Setores' },
-  polos: { line: '#2c8c66', label: 'Polos' },
-  alternativa1: { line: '#d35400', label: 'Alternativa I' },
-  alternativa2: { line: '#e67e22', label: 'Alternativa II' },
-  entorno: { line: '#1abc9c', label: 'Entorno Baía' },
-  parquebts_pontos: { line: '#e84393', label: 'BTS - Cidades' },
-  parquebts_linhas: { line: '#fd79a8', label: 'BTS - Rotas' },
-  parquebts_poligonos: { line: '#6c5ce7', label: 'BTS - Áreas' }
-};
+LAYER_GROUPS.forEach(function(g) {
+  g.layers.forEach(function(l) { activeLayers[l.id] = false; });
+});
 
-// Map legend control
+function getLayerConfig(id) {
+  for (var i = 0; i < LAYER_GROUPS.length; i++)
+    for (var j = 0; j < LAYER_GROUPS[i].layers.length; j++)
+      if (LAYER_GROUPS[i].layers[j].id === id) return LAYER_GROUPS[i].layers[j];
+  return null;
+}
+
 var LegendControl = L.Control.extend({
   onAdd: function() {
     var div = L.DomUtil.create('div', 'map-legend');
-    div.innerHTML = '<div style="background:rgba(255,255,255,0.95);padding:8px 12px;border-radius:6px;font-size:12px;font-family:\'IBM Plex Sans\',sans-serif;line-height:1.6;border:1px solid #dcdfd2">' +
-      '<div style="font-weight:600;margin-bottom:4px;color:#23251d">Legenda</div>' +
-      '<div><span style="display:inline-block;width:12px;height:3px;background:#cd4239;margin-right:6px;vertical-align:middle"></span>Ferrovias</div>' +
-      '<div><span style="display:inline-block;width:12px;height:2px;background:#2c84e0;margin-right:6px;vertical-align:middle;border-top:2px dashed #2c84e0"></span>Rodovias</div>' +
-      '<div><span style="display:inline-block;width:12px;height:10px;background:#7c44a6;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #7c44a6"></span>Setores</div>' +
-      '<div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2c8c66;margin-right:6px;vertical-align:middle"></span>Polos Logísticos</div>' +
-      '<div><span style="display:inline-block;width:12px;height:10px;background:#d35400;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #d35400"></span>Alternativa I</div>' +
-      '<div><span style="display:inline-block;width:12px;height:10px;background:#e67e22;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #e67e22"></span>Alternativa II</div>' +
-      '<div><span style="display:inline-block;width:12px;height:10px;background:#1abc9c;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #1abc9c"></span>Entorno Baía</div>' +
-      '<div><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#e84393;margin-right:6px;vertical-align:middle"></span>BTS Cidades</div>' +
-      '<div><span style="display:inline-block;width:12px;height:2px;background:#fd79a8;margin-right:6px;vertical-align:middle"></span>BTS Rotas</div>' +
-      '<div><span style="display:inline-block;width:12px;height:10px;background:#6c5ce7;margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid #6c5ce7"></span>BTS Áreas</div>' +
-      '</div>';
+    var html = '<div style="background:rgba(255,255,255,0.95);padding:8px 12px;border-radius:6px;font-size:12px;font-family:\'IBM Plex Sans\',sans-serif;line-height:1.6;border:1px solid #dcdfd2">' +
+      '<div style="font-weight:600;margin-bottom:4px;color:#23251d">Legenda</div>';
+    LAYER_GROUPS.forEach(function(g) { g.layers.forEach(function(l) { html += legendEntry(l); }); });
+    html += '</div>';
+    div.innerHTML = html;
     return div;
   }
 });
 
+function legendEntry(lc) {
+  var cls = lc.subtype === 'point' || lc.type === 'polos'
+    ? 'width:10px;height:10px;border-radius:50%;background:' + lc.color + ';margin-right:6px;vertical-align:middle'
+    : lc.geometry === 'line' || lc.subtype === 'line'
+      ? 'width:12px;height:2px;background:' + lc.color + ';margin-right:6px;vertical-align:middle'
+      : 'width:12px;height:10px;background:' + lc.color + ';margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid ' + lc.color;
+  return '<div><span style="display:inline-block;' + cls + '"></span>' + lc.label + '</div>';
+}
 
 function initMap() {
-  if (mapInitialized) {
-    if (mapInstance) mapInstance.invalidateSize();
-    return;
-  }
+  var loadStart = Date.now();
+  if (mapInitialized) { if (mapInstance) mapInstance.invalidateSize(); return; }
   mapInitialized = true;
-
-  const container = document.getElementById('map-container');
+  var container = document.getElementById('map-container');
   if (!container || container._leaflet_id) return;
-
   mapInstance = L.map('map-container', {
-    center: [-13.5, -42.0],
-    zoom: 6,
-    zoomControl: true,
-    attributionControl: true
+    center: [-13.5, -42.0], zoom: 6, zoomControl: true, attributionControl: true
   });
-
   window.osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>'
+    maxZoom: 18, attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>'
   });
-
   window.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    maxZoom: 18,
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    maxZoom: 18, attribution: 'Tiles &copy; Esri'
   });
-
   window.currentBaseLayer = window.osmLayer;
   window.currentBaseLayer.addTo(mapInstance);
-
-  // Bahia outline — carregado de GeoJSON com fallback inline
   loadBahiaOutline();
-
-  // Camadas de dados
-  mapLayers.ferrovias = L.layerGroup();
-  loadGeoJSONLayer('ferrovias', 'data/ferrovias.geojson', FERROVIAS, styleFerrovias, renderFerroviasFallback);
-
-  mapLayers.rodovias = L.layerGroup();
-  loadGeoJSONLayer('rodovias', 'data/rodovias.geojson', RODOVIAS, styleRodovias, renderRodoviasFallback);
-
-  mapLayers.setores = L.layerGroup();
-  loadGeoJSONLayer('setores', 'data/setores.geojson', SETORES_CONSTRUCAO, styleSetores, renderSetoresFallback);
-
-  mapLayers.polos = L.layerGroup();
-  loadPolosFromGeoJSON();
-
-  // Camadas ESRI
-  mapLayers.alternativa1 = L.layerGroup();
-  loadESRILayer('alternativa1', 'data/Alternativa I.json', styleAlternativa1);
-
-  mapLayers.alternativa2 = L.layerGroup();
-  loadESRILayer('alternativa2', 'data/Alternativa II.json', styleAlternativa2);
-
-  mapLayers.entorno = L.layerGroup();
-  loadESRILayer('entorno', 'data/EntornoBaíaCIA.json', styleEntorno);
-
-  // Camadas Parque BTS (split por tipo de geometria)
-  mapLayers.parquebts_pontos = L.layerGroup();
-  mapLayers.parquebts_linhas = L.layerGroup();
-  mapLayers.parquebts_poligonos = L.layerGroup();
-  loadParqueBTS();
-
-  // Map legend
-  var legend = new LegendControl({ position: 'bottomleft' });
-  legend.addTo(mapInstance);
-
-  // Ensure map renders correctly
-  setTimeout(() => { mapInstance.invalidateSize(); }, 100);
-
-  // Hide loading
-  const loading = document.getElementById('map-loading');
-  if (loading) loading.classList.add('hidden');
-}
-
-
-/* =============================================================
-   GEOJSON LOADER — tenta fetch, fallback para dados inline
-   ============================================================= */
-function loadGeoJSONLayer(name, url, fallbackData, styleFn, renderFn) {
-  fetch(url)
-    .then(function(r) { if (!r.ok) throw new Error('GeoJSON not found'); return r.json(); })
-    .then(function(gj) {
-      L.geoJSON(gj, {
-        style: styleFn,
-        onEachFeature: function(f, l) { if (f.properties.name) l.bindPopup(f.properties.name); }
-      }).addTo(mapLayers[name]);
-      if (activeLayers[name]) mapInstance.addLayer(mapLayers[name]);
-    })
-    .catch(function() {
-      renderFn(fallbackData);
-      if (activeLayers[name]) mapInstance.addLayer(mapLayers[name]);
+  buildLayerControls();
+  LAYER_GROUPS.forEach(function(g) {
+    g.layers.forEach(function(lc) {
+      mapLayers[lc.id] = L.layerGroup();
+      loadLayer(lc);
     });
-}
-
-
-/* =============================================================
-   ESRI JSON → GEOJSON CONVERTER
-   ============================================================= */
-function flattenESRICoords(item) {
-  if (Array.isArray(item) && item.length === 2 && typeof item[0] === 'number') return [item];
-  if (Array.isArray(item)) {
-    var result = [];
-    item.forEach(function(el) { result = result.concat(flattenESRICoords(el)); });
-    return result;
+  });
+  new LegendControl({ position: 'bottomleft' }).addTo(mapInstance);
+  setTimeout(function() { mapInstance.invalidateSize(); }, 100);
+  var loading = document.getElementById('map-loading');
+  if (loading) {
+    var elapsed = Date.now() - loadStart;
+    var delay = Math.max(0, 3000 - elapsed);
+    setTimeout(function() { loading.classList.add('hidden'); }, delay);
   }
-  if (item && typeof item === 'object' && item.c) return flattenESRICoords(item.c);
-  return [];
 }
 
-function esriJsonToGeoJSON(esriJson) {
-  var geoType;
-  if (esriJson.geometryType === 'esriGeometryPolygon') geoType = 'Polygon';
-  else if (esriJson.geometryType === 'esriGeometryPolyline') geoType = 'LineString';
-  else if (esriJson.geometryType === 'esriGeometryPoint') geoType = 'Point';
-  else return null;
+function fetchFile(url) {
+  if (!fetchCache[url])
+    fetchCache[url] = fetch(url).then(function(r) { if (!r.ok) throw new Error(); return r.json(); });
+  return fetchCache[url];
+}
 
-  return {
-    type: 'FeatureCollection',
-    features: esriJson.features.map(function(f) {
-      var props = {};
-      var attrs = f.attributes || {};
-      Object.keys(attrs).forEach(function(k) { props[k.toLowerCase()] = attrs[k]; });
-      var g = f.geometry;
-      var rings = g.rings || g.curveRings || null;
-      if (!rings) return null;
-      var coords = rings.map(function(ring) { return flattenESRICoords(ring); });
-      return {
-        type: 'Feature',
-        properties: props,
-        geometry: { type: geoType, coordinates: coords }
-      };
-    }).filter(function(f) { return f !== null; })
+function loadLayer(lc) {
+  switch (lc.type) {
+    case 'geojson': loadGeoJSON(lc); break;
+    case 'esri': loadESRI(lc); break;
+    case 'bts': loadBTS(lc); break;
+    case 'polos': loadPolos(lc); break;
+  }
+}
+
+function makeStyle(lc) {
+  return function(f) {
+    var t = f.geometry.type;
+    if (t === 'Polygon' || t === 'MultiPolygon')
+      return { color: lc.color, weight: 2, fillColor: lc.color, fillOpacity: 0.12 };
+    if (t === 'LineString' || t === 'MultiLineString') {
+      var s = { color: lc.color, weight: 2.5, opacity: 0.7 };
+      if (lc.dashed) s.dashArray = '6 4';
+      return s;
+    }
+    return { color: lc.color, weight: 2 };
   };
 }
 
-function loadESRILayer(name, url, styleFn) {
-  fetch(url)
-    .then(function(r) { if (!r.ok) throw new Error('ESRI JSON not found'); return r.json(); })
-    .then(function(esriJson) {
-      var gj = esriJsonToGeoJSON(esriJson);
-      if (!gj) return;
-      L.geoJSON(gj, {
-        style: styleFn,
-        onEachFeature: function(f, l) {
-          var n = f.properties.name || f.properties.nome || '';
-          if (n) l.bindPopup(n);
-        }
-      }).addTo(mapLayers[name]);
-      if (activeLayers[name]) mapInstance.addLayer(mapLayers[name]);
-    })
-    .catch(function() {});
+function loadGeoJSON(lc) {
+  fetchFile(lc.file).then(function(gj) {
+    L.geoJSON(gj, {
+      style: makeStyle(lc),
+      pointToLayer: function(f, latlng) {
+        return L.circleMarker(latlng, { radius: 6, color: lc.color, fillColor: lc.color, fillOpacity: 0.6, weight: 2 });
+      },
+      onEachFeature: function(f, l) { var n = f.properties.name || f.properties.Nome || ''; if (n) l.bindPopup(n); }
+    }).addTo(mapLayers[lc.id]);
+    if (activeLayers[lc.id]) mapInstance.addLayer(mapLayers[lc.id]);
+  }).catch(function() {});
 }
 
-
-function loadParqueBTS() {
-  fetch('data/parque_bts.geojson')
-    .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
-    .then(function(gj) {
-      gj.features.forEach(function(f) {
-        var gtype = f.geometry.type;
-        var layer, style, pointStyle;
-        if (gtype === 'Point') {
-          layer = mapLayers.parquebts_pontos;
-          pointStyle = {
-            radius: 6, color: '#e84393', fillColor: '#e84393', fillOpacity: 0.6, weight: 2
-          };
-        } else if (gtype === 'LineString' || gtype === 'MultiLineString') {
-          layer = mapLayers.parquebts_linhas;
-          style = { color: '#fd79a8', weight: 2.5, opacity: 0.7 };
-        } else if (gtype === 'Polygon' || gtype === 'MultiPolygon') {
-          layer = mapLayers.parquebts_poligonos;
-          style = { color: '#6c5ce7', weight: 2, fillColor: '#6c5ce7', fillOpacity: 0.12 };
-        } else { return; }
-        var leafletObj;
-        if (pointStyle) {
-          var coords = [f.geometry.coordinates[1], f.geometry.coordinates[0]];
-          leafletObj = L.circleMarker(coords, pointStyle);
-        } else {
-          leafletObj = L.geoJSON(f, { style: style });
-        }
-        var n = f.properties.name || f.properties.Nome || f.properties.type || '';
-        if (n) leafletObj.bindPopup(n);
-        if (leafletObj.addTo) leafletObj.addTo(layer);
-      });
-      Object.keys(activeLayers).forEach(function(k) {
-        if (activeLayers[k] && mapLayers[k]) mapInstance.addLayer(mapLayers[k]);
-      });
-    })
-    .catch(function() {});
+function loadESRI(lc) {
+  fetchFile(lc.file).then(function(esriJson) {
+    var gj = esriJsonToGeoJSON(esriJson);
+    if (!gj) return;
+    L.geoJSON(gj, {
+      style: { color: lc.color, weight: 2, fillColor: lc.color, fillOpacity: 0.15 },
+      onEachFeature: function(f, l) { var n = f.properties.name || f.properties.nome || ''; if (n) l.bindPopup(n); }
+    }).addTo(mapLayers[lc.id]);
+    if (activeLayers[lc.id]) mapInstance.addLayer(mapLayers[lc.id]);
+  }).catch(function() {});
 }
 
-
-/* =============================================================
-   BAHIA OUTLINE
-   ============================================================= */
-function loadBahiaOutline() {
-  fetch('data/bahia-outline.geojson')
-    .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
-    .then(function(gj) {
-      L.geoJSON(gj, {
-        style: { color: '#23251d', weight: 1.5, fillColor: '#fcfcfa', fillOpacity: 0.3 }
-      }).addTo(mapInstance);
-    })
-    .catch(function() {
-      L.polygon(BAHIA_OUTLINE, {
-        color: '#23251d', weight: 1.5, fillColor: '#fcfcfa', fillOpacity: 0.3
-      }).addTo(mapInstance);
+function loadBTS(lc) {
+  fetchFile(lc.file).then(function(gj) {
+    var features = gj.features.filter(function(f) {
+      var t = f.geometry.type;
+      if (lc.subtype === 'point') return t === 'Point';
+      if (lc.subtype === 'line') return t === 'LineString' || t === 'MultiLineString';
+      if (lc.subtype === 'polygon') return t === 'Polygon' || t === 'MultiPolygon';
+      return false;
     });
-}
+    if (!features.length) return;
 
-
-/* =============================================================
-   ESTILOS POR CAMADA
-   ============================================================= */
-function styleFerrovias(f) {
-  return { color: f.properties.color || '#cd4239', weight: f.properties.weight || 3, opacity: 0.85 };
-}
-
-function styleRodovias(f) {
-  return { color: f.properties.color || '#2c84e0', weight: f.properties.weight || 2.5, opacity: 0.7, dashArray: '6 4' };
-}
-
-function styleSetores(f) {
-  return { color: f.properties.color || '#7c44a6', weight: 1.5, fillColor: f.properties.color || '#7c44a6', fillOpacity: f.properties.fillOpacity || 0.12 };
-}
-
-
-function styleAlternativa1(f) {
-  return { color: '#d35400', weight: 2, fillColor: '#d35400', fillOpacity: 0.15 };
-}
-function styleAlternativa2(f) {
-  return { color: '#e67e22', weight: 2, fillColor: '#e67e22', fillOpacity: 0.15 };
-}
-function styleEntorno(f) {
-  return { color: '#1abc9c', weight: 2, fillColor: '#1abc9c', fillOpacity: 0.12 };
-}
-
-
-/* =============================================================
-   FALLBACK — renderiza a partir dos arrays inline (map-data.js)
-   ============================================================= */
-function renderFerroviasFallback(data) {
-  data.forEach(function(f) {
-    L.polyline(f.coords, { color: f.color, weight: f.weight, opacity: 0.85 })
-      .bindPopup(f.name).addTo(mapLayers.ferrovias);
-  });
-}
-
-function renderRodoviasFallback(data) {
-  data.forEach(function(r) {
-    L.polyline(r.coords, { color: r.color, weight: r.weight, opacity: 0.7, dashArray: '6 4' })
-      .bindPopup(r.name).addTo(mapLayers.rodovias);
-  });
-}
-
-function renderSetoresFallback(data) {
-  data.forEach(function(s) {
-    L.polygon(s.coords, { color: s.color, weight: 1.5, fillColor: s.color, fillOpacity: s.fillOpacity })
-      .bindPopup(s.name).addTo(mapLayers.setores);
-  });
-}
-
-
-/* =============================================================
-   POLOS — tem ícone customizado, tratado separadamente
-   ============================================================= */
-function loadPolosFromGeoJSON() {
-  const greenIcon = L.divIcon({
-    className: '',
-    html: '<div style="width:14px;height:14px;border-radius:50%;background:#2c8c66;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>',
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
-    popupAnchor: [0, -10]
-  });
-
-  fetch('data/polos.geojson')
-    .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
-    .then(function(gj) {
-      L.geoJSON(gj, {
+    if (lc.submenu) {
+      subLayers[lc.id] = { features: features, items: {}, active: {}, names: {} };
+      features.forEach(function(f, idx) {
+        var name = f.properties.name || f.properties.Nome || f.properties.type || ('Item ' + (idx + 1));
+        var itemId = lc.id + '_' + idx;
+        subLayers[lc.id].names[itemId] = name;
+        subLayers[lc.id].active[itemId] = false;
+        subLayers[lc.id].items[itemId] = L.geoJSON({ type: 'FeatureCollection', features: [f] }, {
+          style: makeStyle(lc),
+          pointToLayer: function(feat, latlng) {
+            return L.circleMarker(latlng, { radius: 5, color: lc.color, fillColor: lc.color, fillOpacity: 0.6, weight: 2 });
+          },
+          onEachFeature: function(feat, layer) { var n = feat.properties.name || feat.properties.Nome || ''; if (n) layer.bindPopup(n); }
+        });
+      });
+    } else {
+      L.geoJSON({ type: 'FeatureCollection', features: features }, {
+        style: makeStyle(lc),
         pointToLayer: function(f, latlng) {
-          return L.marker(latlng, { icon: greenIcon });
+          return L.circleMarker(latlng, { radius: 5, color: lc.color, fillColor: lc.color, fillOpacity: 0.6, weight: 2 });
         },
-        onEachFeature: function(f, l) {
-          l.bindPopup('<strong>' + f.properties.name + '</strong><br>' + f.properties.type);
-        }
-      }).addTo(mapLayers.polos);
-      if (activeLayers.polos) mapInstance.addLayer(mapLayers.polos);
-    })
-    .catch(function() {
-      POLOS_LOGISTICOS.forEach(function(p) {
-        var m = L.marker(p.coords, { icon: greenIcon })
-          .bindPopup('<strong>' + p.name + '</strong><br>' + p.type)
-          .addTo(mapLayers.polos);
-        markers.push(m);
-      });
-      if (activeLayers.polos) mapInstance.addLayer(mapLayers.polos);
-    });
+        onEachFeature: function(f, l) { var n = f.properties.name || f.properties.Nome || f.properties.type || ''; if (n) l.bindPopup(n); }
+      }).addTo(mapLayers[lc.id]);
+    }
+    if (activeLayers[lc.id]) mapInstance.addLayer(mapLayers[lc.id]);
+  }).catch(function() {});
 }
 
+function loadPolos(lc) {
+  var icon = L.divIcon({
+    className: '',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:' + lc.color + ';border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>',
+    iconSize: [14, 14], iconAnchor: [7, 7], popupAnchor: [0, -10]
+  });
+  fetchFile(lc.file).then(function(gj) {
+    L.geoJSON(gj, {
+      pointToLayer: function(f, latlng) { return L.marker(latlng, { icon: icon }); },
+      onEachFeature: function(f, l) { l.bindPopup('<strong>' + f.properties.name + '</strong><br>' + f.properties.type); }
+    }).addTo(mapLayers[lc.id]);
+    if (activeLayers[lc.id]) mapInstance.addLayer(mapLayers[lc.id]);
+  }).catch(function() {});
+}
 
-/* =============================================================
-   BASE LAYER TOGGLE (Mapa / Satélite)
-   ============================================================= */
+function buildLayerControls() {
+  var container = document.getElementById('layer-controls');
+  var html = '';
+  LAYER_GROUPS.forEach(function(g) {
+    html += '<div class="layer-group">';
+    html += '<div class="group-header" data-group="' + g.id + '"><span class="group-arrow">' + (g.expanded ? '\u25BC' : '\u25B6') + '</span> ' + g.icon + ' ' + g.label + '</div>';
+    html += '<div class="group-body"' + (g.expanded ? '' : ' style="display:none"') + '>';
+    g.layers.forEach(function(l) {
+      var isActive = activeLayers[l.id];
+      html += '<div class="layer-row">';
+      html += '<button class="layer-btn' + (isActive ? ' active' : '') + '" data-layer="' + l.id + '"><span class="dot" style="background:' + l.color + '"></span> ' + l.label + '</button>';
+      if (l.submenu) {
+        html += '<button class="sub-arrow" data-submenu="' + l.id + '">\u25B6</button>';
+      }
+      html += '</div>';
+      if (l.submenu) {
+        html += '<div class="sub-items" data-parent="' + l.id + '"></div>';
+      }
+    });
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function populateSubItems(parentId) {
+  var sl = subLayers[parentId];
+  if (!sl) return;
+  var container = document.querySelector('.sub-items[data-parent="' + parentId + '"]');
+  if (!container) return;
+  var lc = getLayerConfig(parentId);
+  var html = '';
+  Object.keys(sl.names).forEach(function(itemId) {
+    html += '<button class="sub-item' + (sl.active[itemId] ? ' active' : '') + '" data-parent="' + parentId + '" data-item="' + itemId + '">';
+    html += '<span class="sub-dot" style="background:' + lc.color + '"></span> ' + sl.names[itemId];
+    html += '</button>';
+  });
+  container.innerHTML = html;
+}
+
+function showInfoOverlay(id) {
+  var container = document.getElementById('info-bar');
+  if (!container) return;
+  if (!id || !activeLayers[id]) { container.innerHTML = ''; return; }
+  var lc = getLayerConfig(id);
+  if (!lc) { container.innerHTML = ''; return; }
+  container.innerHTML = '<div class="info-card active">' +
+    '<div class="info-title"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + lc.color + ';margin-right:4px"></span> ' + lc.label +
+    ' <span class="badge on">Ativo</span></div>' +
+    '<div class="info-desc">' + lc.desc + '</div></div>';
+}
+
+function toggleLayer(id) {
+  var lc = getLayerConfig(id);
+  if (!lc || !mapLayers[id]) return;
+  activeLayers[id] = !activeLayers[id];
+
+  if (activeLayers[id]) {
+    if (lc.submenu && subLayers[id]) {
+      var sl = subLayers[id];
+      Object.keys(sl.items).forEach(function(itemId) {
+        mapInstance.addLayer(sl.items[itemId]);
+        sl.active[itemId] = true;
+      });
+    }
+    mapInstance.addLayer(mapLayers[id]);
+    lastToggled = id;
+  } else {
+    if (lc.submenu && subLayers[id]) {
+      var sl = subLayers[id];
+      Object.keys(sl.items).forEach(function(itemId) {
+        mapInstance.removeLayer(sl.items[itemId]);
+        sl.active[itemId] = false;
+        var subBtn = document.querySelector('.sub-item[data-item="' + itemId + '"]');
+        if (subBtn) subBtn.classList.remove('active');
+      });
+    }
+    mapInstance.removeLayer(mapLayers[id]);
+    if (lastToggled === id) lastToggled = null;
+  }
+
+  document.querySelectorAll('.layer-btn[data-layer="' + id + '"]').forEach(function(btn) {
+    btn.classList.toggle('active', activeLayers[id]);
+  });
+  showInfoOverlay(lastToggled);
+  if (mapInstance) mapInstance.invalidateSize();
+}
+
+function toggleSubItem(parentId, itemId) {
+  if (!subLayers[parentId]) return;
+  var sl = subLayers[parentId];
+  sl.active[itemId] = !sl.active[itemId];
+  if (sl.active[itemId]) mapInstance.addLayer(sl.items[itemId]);
+  else mapInstance.removeLayer(sl.items[itemId]);
+  var btn = document.querySelector('.sub-item[data-item="' + itemId + '"]');
+  if (btn) btn.classList.toggle('active', sl.active[itemId]);
+}
+
+function toggleGroup(groupId) {
+  var body = document.querySelector('.group-header[data-group="' + groupId + '"] + .group-body');
+  if (!body) return;
+  var isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? '' : 'none';
+  var arrow = document.querySelector('.group-header[data-group="' + groupId + '"] .group-arrow');
+  if (arrow) arrow.textContent = isHidden ? '\u25BC' : '\u25B6';
+}
+
 function setBaseLayer(name) {
   var layer = name === 'satelite' ? window.satelliteLayer : window.osmLayer;
   if (window.currentBaseLayer === layer) return;
@@ -356,55 +298,130 @@ function setBaseLayer(name) {
   });
 }
 
-
-/* =============================================================
-   LAYER TOGGLE
-   ============================================================= */
-function toggleLayer(name) {
-  if (!mapLayers[name]) return;
-  activeLayers[name] = !activeLayers[name];
-
-  if (activeLayers[name]) {
-    mapInstance.addLayer(mapLayers[name]);
-  } else {
-    mapInstance.removeLayer(mapLayers[name]);
-  }
-
-  document.querySelectorAll('.layer-btn[data-layer="' + name + '"]').forEach(function(btn) {
-    btn.classList.toggle('active', activeLayers[name]);
-  });
-
-  document.querySelectorAll('.info-card[data-info="' + name + '"]').forEach(function(card) {
-    card.classList.toggle('active', activeLayers[name]);
-    var badge = card.querySelector('.badge');
-    if (badge) {
-      badge.className = 'badge ' + (activeLayers[name] ? 'on' : 'off');
-      badge.textContent = activeLayers[name] ? 'Ativo' : 'Inativo';
-    }
-  });
-
-  if (mapInstance) mapInstance.invalidateSize();
+function toggleSidebar(open) {
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('sidebar-overlay');
+  var btn = document.getElementById('sidebar-toggle');
+  if (!sidebar || !overlay || !btn) return;
+  var isOpen = open !== undefined ? open : !sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', isOpen);
+  overlay.classList.toggle('open', isOpen);
+  btn.innerHTML = isOpen ? '\u25C0 <span class="toggle-label">Camadas</span>' : '\u25B6 <span class="toggle-label">Camadas</span>';
 }
 
-// Layer button event binding
+function showImageViewer(itemId) {
+  var viewer = document.getElementById('image-viewer');
+  var title = document.getElementById('iv-title');
+  var img = document.getElementById('iv-image');
+  if (!viewer || !title || !img) return;
+  var filename = IMAGE_MAP[itemId];
+  if (!filename) { viewer.style.display = 'none'; return; }
+  title.textContent = filename;
+  img.src = 'data/img/' + filename;
+  viewer.style.display = 'flex';
+}
+
+function setupImageViewerDrag() {
+  var viewer = document.getElementById('image-viewer');
+  var header = viewer ? viewer.querySelector('.iv-header') : null;
+  if (!viewer || !header) return;
+  var offsetX = 0, offsetY = 0, startX = 0, startY = 0;
+  header.addEventListener('mousedown', function(e) {
+    if (e.target.closest('.iv-close')) return;
+    startX = e.clientX;
+    startY = e.clientY;
+    offsetX = viewer.offsetLeft;
+    offsetY = viewer.offsetTop;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+  function onMouseMove(e) {
+    var dx = e.clientX - startX;
+    var dy = e.clientY - startY;
+    viewer.style.left = (offsetX + dx) + 'px';
+    viewer.style.top = (offsetY + dy) + 'px';
+    viewer.style.bottom = 'auto';
+    viewer.style.right = 'auto';
+  }
+  function onMouseUp() {
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('.layer-btn[data-layer]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      toggleLayer(this.dataset.layer);
-    });
+  initMap();
+  document.getElementById('sidebar-toggle').addEventListener('click', function() { toggleSidebar(); });
+  document.getElementById('sidebar-close').addEventListener('click', function() { toggleSidebar(false); });
+  document.getElementById('sidebar-overlay').addEventListener('click', function() { toggleSidebar(false); });
+  document.getElementById('iv-close').addEventListener('click', function() {
+    document.getElementById('image-viewer').style.display = 'none';
   });
+  setupImageViewerDrag();
 
-  document.querySelectorAll('.layer-btn.base').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      setBaseLayer(this.dataset.baselayer);
-    });
-  });
-
-  Object.keys(activeLayers).forEach(function(key) {
-    if (activeLayers[key]) {
-      document.querySelectorAll('.info-card[data-info="' + key + '"]').forEach(function(card) {
-        card.classList.add('active');
-      });
+  document.getElementById('layer-controls').addEventListener('click', function(e) {
+    var subArrow = e.target.closest('.sub-arrow');
+    if (subArrow) {
+      var parentId = subArrow.dataset.submenu;
+      var items = document.querySelector('.sub-items[data-parent="' + parentId + '"]');
+      if (!items) return;
+      var isOpen = items.classList.toggle('open');
+      subArrow.textContent = isOpen ? '\u25BC' : '\u25B6';
+      if (isOpen && !items.children.length && subLayers[parentId]) populateSubItems(parentId);
+      return;
     }
+
+    var subItem = e.target.closest('.sub-item');
+    if (subItem) {
+      toggleSubItem(subItem.dataset.parent, subItem.dataset.item);
+      showImageViewer(subItem.dataset.item);
+      return;
+    }
+
+    var btn = e.target.closest('.layer-btn');
+    if (btn && btn.dataset.layer) toggleLayer(btn.dataset.layer);
+    var gh = e.target.closest('.group-header');
+    if (gh && gh.dataset.group) toggleGroup(gh.dataset.group);
+  });
+
+  document.querySelectorAll('.base-toggles').forEach(function(bt) {
+    bt.addEventListener('click', function(e) {
+      var baseBtn = e.target.closest('.layer-btn.base');
+      if (baseBtn && baseBtn.dataset.baselayer) setBaseLayer(baseBtn.dataset.baselayer);
+    });
   });
 });
+
+function flattenESRICoords(item) {
+  if (Array.isArray(item) && item.length === 2 && typeof item[0] === 'number') return [item];
+  if (Array.isArray(item)) { var r = []; item.forEach(function(el) { r = r.concat(flattenESRICoords(el)); }); return r; }
+  if (item && typeof item === 'object' && item.c) return flattenESRICoords(item.c);
+  return [];
+}
+
+function esriJsonToGeoJSON(esriJson) {
+  var geoType;
+  if (esriJson.geometryType === 'esriGeometryPolygon') geoType = 'Polygon';
+  else if (esriJson.geometryType === 'esriGeometryPolyline') geoType = 'LineString';
+  else if (esriJson.geometryType === 'esriGeometryPoint') geoType = 'Point';
+  else return null;
+  return {
+    type: 'FeatureCollection',
+    features: esriJson.features.map(function(f) {
+      var props = {};
+      var attrs = f.attributes || {};
+      Object.keys(attrs).forEach(function(k) { props[k.toLowerCase()] = attrs[k]; });
+      var rings = (f.geometry.rings || f.geometry.curveRings || null);
+      if (!rings) return null;
+      return { type: 'Feature', properties: props, geometry: { type: geoType, coordinates: rings.map(function(r) { return flattenESRICoords(r); }) } };
+    }).filter(function(f) { return f !== null; })
+  };
+}
+
+function loadBahiaOutline() {
+  fetch('data/bahia-outline.geojson').then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+    .then(function(gj) { L.geoJSON(gj, { style: { color: '#23251d', weight: 1.5, fillColor: '#fcfcfa', fillOpacity: 0.3 } }).addTo(mapInstance); })
+    .catch(function() {
+      if (typeof BAHIA_OUTLINE !== 'undefined') L.polygon(BAHIA_OUTLINE, { color: '#23251d', weight: 1.5, fillColor: '#fcfcfa', fillOpacity: 0.3 }).addTo(mapInstance);
+    });
+}

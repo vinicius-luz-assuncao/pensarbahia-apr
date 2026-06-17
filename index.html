@@ -15,236 +15,54 @@
 </head>
 <body>
 
-<div class="slides-wrapper">
-  <!-- ====== SLIDE 1 — CAPA ====== -->
-  <section class="slide active" id="slide-1">
-    <div class="brand-mark">
-      <img src="assets/img/brand-mark.svg" alt="Pensar Bahia" width="80" height="80">
-    </div>
-    <h1>Pensar Bahia</h1>
-    <div class="subtitle">
-      Sistema de Estrutura Logística<br>
-      <span>Plano Estratégico Ferroviário</span>
-    </div>
-    <div class="meta">
-      Superintendência de Estudos Econômicos e Sociais da Bahia &mdash; SEI
-    </div>
-  </section>
-
-  <!-- ====== SLIDE 2 — APRESENTAÇÃO ====== -->
-  <section class="slide" id="slide-2">
-    <div class="content">
-      <h2>Apresentação do Projeto</h2>
-      <p>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-      </p>
-      <p>
-        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.
-      </p>
-      <p>
-        Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.
-      </p>
-
-      <div class="highlight-row">
-        <div class="highlight-item">
-          <div class="number">18</div>
-          <div class="label">Municípios com vocação logística</div>
-        </div>
-        <div class="highlight-item">
-          <div class="number">4</div>
-          <div class="label">Corredores ferroviários propostos</div>
-        </div>
-        <div class="highlight-item">
-          <div class="number">6</div>
-          <div class="label">Complexos portuários integrados</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ====== SLIDE 3 — MAPA INTERATIVO ====== -->
-  <section class="slide" id="slide-3">
-    <div class="slide-inner">
-      <div class="map-header">
-        <h2>Infraestrutura Logística da Bahia</h2>
-        <div class="layer-controls" id="layer-controls">
-          <button class="layer-btn active" data-layer="ferrovias">
-            <span class="dot" style="background:#cd4239"></span>
-            Ferrovias
-          </button>
-          <button class="layer-btn" data-layer="rodovias">
-            <span class="dot" style="background:#2c84e0"></span>
-            Rodovias
-          </button>
-          <button class="layer-btn" data-layer="setores">
-            <span class="dot" style="background:#7c44a6"></span>
-            Setores de Construção
-          </button>
-          <button class="layer-btn active" data-layer="polos">
-            <span class="dot" style="background:#2c8c66"></span>
-            Polos Logísticos
-          </button>
-          <button class="layer-btn" data-layer="alternativa1">
-            <span class="dot" style="background:#d35400"></span>
-            Alternativa I
-          </button>
-          <button class="layer-btn" data-layer="alternativa2">
-            <span class="dot" style="background:#e67e22"></span>
-            Alternativa II
-          </button>
-          <button class="layer-btn" data-layer="entorno">
-            <span class="dot" style="background:#1abc9c"></span>
-            Entorno Baía
-          </button>
-          <button class="layer-btn" data-layer="parquebts_pontos">
-            <span class="dot" style="background:#e84393"></span>
-            BTS Cidades
-          </button>
-          <button class="layer-btn" data-layer="parquebts_linhas">
-            <span class="dot" style="background:#fd79a8"></span>
-            BTS Rotas
-          </button>
-          <button class="layer-btn" data-layer="parquebts_poligonos">
-            <span class="dot" style="background:#6c5ce7"></span>
-            BTS Áreas
-          </button>
-          <span class="layer-sep"></span>
-          <button class="layer-btn base active" data-baselayer="mapa">🗺 Mapa</button>
-          <button class="layer-btn base" data-baselayer="satelite">🛰 Satélite</button>
-        </div>
-      </div>
-
-      <div class="map-container-wrapper">
-        <div id="map-container"></div>
-        <div id="map-loading">
-          <div class="spinner"></div>
-          <div class="load-text">Carregando mapa interativo...</div>
-        </div>
-      </div>
-
-      <div class="info-panels" id="info-panels">
-        <div class="info-card active" data-info="ferrovias">
-          <div class="info-title">
-            🚂 Ferrovias
-            <span class="badge on">Ativo</span>
-          </div>
-          <div class="info-desc">
-            Corredores do Plano Estratégico Ferroviário da Bahia: Faroeste, Norte-Sul,
-            Litorâneo e Acesso Portuário. Proposta de unificação de bitola e novos ramais.
-          </div>
-        </div>
-        <div class="info-card" data-info="rodovias">
-          <div class="info-title">
-            🛣️ Rodovias
-            <span class="badge off">Inativo</span>
-          </div>
-          <div class="info-desc">
-            Principais eixos rodoviários federais e estaduais: BR-101, BR-116, BR-242 e
-            BA-001. Integração multimodal com ferrovias e portos.
-          </div>
-        </div>
-        <div class="info-card" data-info="setores">
-          <div class="info-title">
-            🏗️ Setores de Construção
-            <span class="badge off">Inativo</span>
-          </div>
-          <div class="info-desc">
-            Zonas prioritárias para expansão da malha: Oeste (grãos), Centro-Sul
-            (mineração), Norte (irrigação) e Litoral Sul (celulose).
-          </div>
-        </div>
-        <div class="info-card active" data-info="polos">
-          <div class="info-title">
-            📍 Polos Logísticos
-            <span class="badge on">Ativo</span>
-          </div>
-          <div class="info-desc">
-            18 municípios identificados com alto potencial logístico, incluindo
-            Salvador, Feira de Santana, Barreiras, Vitória da Conquista e Ilhéus.
-          </div>
-        </div>
-        <div class="info-card" data-info="alternativa1">
-          <div class="info-title">
-            🔶 Alternativa I
-            <span class="badge off">Inativo</span>
-          </div>
-          <div class="info-desc">
-            Traçado alternativo com 186,11 ha para expansão do sistema logístico
-            na região do Centro Industrial de Aratu (CIA).
-          </div>
-        </div>
-        <div class="info-card" data-info="alternativa2">
-          <div class="info-title">
-            🟠 Alternativa II
-            <span class="badge off">Inativo</span>
-          </div>
-          <div class="info-desc">
-            Traçado alternativo com 902,11 ha para expansão logística,
-            abrangendo área estendida no entorno do CIA.
-          </div>
-        </div>
-        <div class="info-card" data-info="entorno">
-          <div class="info-title">
-            🟢 Entorno Baía
-            <span class="badge off">Inativo</span>
-          </div>
-          <div class="info-desc">
-            Polígono do Entorno da Baía de Todos os Santos — 19.409,24 ha —
-            delimitando a região de influência do CIA e do Porto de Aratu.
-          </div>
-        </div>
-        <div class="info-card" data-info="parquebts_pontos">
-          <div class="info-title">
-            🌸 BTS Cidades
-            <span class="badge off">Inativo</span>
-          </div>
-          <div class="info-desc">
-            Municípios e localidades de referência na região de abrangência
-            do Parque da Baía de Todos os Santos.
-          </div>
-        </div>
-        <div class="info-card" data-info="parquebts_linhas">
-          <div class="info-title">
-            🏞️ BTS Rotas
-            <span class="badge off">Inativo</span>
-          </div>
-          <div class="info-desc">
-            Eixos de deslocamento e conexões viárias no entorno do parque
-            e da Baía de Todos os Santos.
-          </div>
-        </div>
-        <div class="info-card" data-info="parquebts_poligonos">
-          <div class="info-title">
-            🟣 BTS Áreas
-            <span class="badge off">Inativo</span>
-          </div>
-          <div class="info-desc">
-            Polígonos da unidade de conservação e zonas de amortecimento
-            do Parque da Baía de Todos os Santos.
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+<div id="image-viewer" class="image-viewer" style="display:none">
+  <div class="iv-header">
+    <span class="iv-title" id="iv-title"></span>
+    <button id="iv-close" class="iv-close">&times;</button>
+  </div>
+  <div class="iv-body">
+    <img id="iv-image" src="" alt="">
+  </div>
 </div>
 
-<!-- ====== NAVEGAÇÃO ====== -->
-<nav class="nav-bar" id="nav-bar">
-  <button class="nav-btn prev" id="prev-slide" disabled><span class="nav-icon">←</span><span class="nav-label"> Anterior</span></button>
-  <div class="slide-dots" id="slide-dots">
-    <button class="dot active" data-slide="0"></button>
-    <button class="dot" data-slide="1"></button>
-    <button class="dot" data-slide="2"></button>
+<!-- ====== SIDEBAR ====== -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <span>Camadas</span>
+    <button id="sidebar-close" class="sidebar-close">&times;</button>
   </div>
-  <button class="nav-btn next" id="next-slide"><span class="nav-label">Próximo </span><span class="nav-icon">→</span></button>
-</nav>
+  <div class="sidebar-content" id="layer-controls"></div>
+</div>
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+<!-- ====== MAPA ====== -->
+<div class="map-page">
+  <div class="map-header">
+    <h2>Infraestrutura Logística da Bahia</h2>
+    <button id="sidebar-toggle" class="sidebar-toggle">&#9654;</button>
+    <div class="base-toggles">
+      <button class="layer-btn base active" data-baselayer="mapa">&#x1F5FA;</button>
+      <button class="layer-btn base" data-baselayer="satelite">&#x1F4F7;</button>
+    </div>
+  </div>
+
+  <div id="info-bar" class="info-bar"></div>
+
+  <div class="map-container-wrapper">
+    <div id="map-container"></div>
+    <div id="map-loading">
+      <div class="spinner"></div>
+      <div class="load-text">Carregando mapa interativo...</div>
+    </div>
+  </div>
+</div>
 
 <!-- ============================================================
      SCRIPTS
      ============================================================ -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/layers-config.js"></script>
 <script src="js/map-data.js"></script>
-<script src="js/slides.js"></script>
 <script src="js/map-controller.js"></script>
 </body>
 </html>
