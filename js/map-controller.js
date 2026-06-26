@@ -64,6 +64,8 @@ function initMap() {
     });
   });
   new LegendControl({ position: 'bottomleft' }).addTo(mapInstance);
+  L.control.scale({ position: 'bottomright', metric: true, imperial: false }).addTo(mapInstance);
+  addCenterBox();
   setTimeout(function() { mapInstance.invalidateSize(); }, 100);
   var loading = document.getElementById('map-loading');
   if (loading) {
@@ -127,15 +129,23 @@ function loadESRI(lc) {
   }).catch(function() {});
 }
 
+function filterFeature(f, lc) {
+  if (lc.nameFilter) return f.properties.name === lc.nameFilter;
+  if (lc.namePrefix) return (f.properties.name || '').indexOf(lc.namePrefix) === 0;
+  if (lc.nameList) return lc.nameList.indexOf(f.properties.name) !== -1;
+  var t = f.geometry.type;
+  if (lc.subtype === 'point') {
+    if (lc.excludeNames && lc.excludeNames.indexOf(f.properties.name) !== -1) return false;
+    return t === 'Point';
+  }
+  if (lc.subtype === 'line') return t === 'LineString' || t === 'MultiLineString';
+  if (lc.subtype === 'polygon') return t === 'Polygon' || t === 'MultiPolygon';
+  return false;
+}
+
 function loadBTS(lc) {
   fetchFile(lc.file).then(function(gj) {
-    var features = gj.features.filter(function(f) {
-      var t = f.geometry.type;
-      if (lc.subtype === 'point') return t === 'Point';
-      if (lc.subtype === 'line') return t === 'LineString' || t === 'MultiLineString';
-      if (lc.subtype === 'polygon') return t === 'Polygon' || t === 'MultiPolygon';
-      return false;
-    });
+    var features = gj.features.filter(function(f) { return filterFeature(f, lc); });
     if (!features.length) return;
 
     if (lc.submenu) {
@@ -220,18 +230,6 @@ function populateSubItems(parentId) {
   container.innerHTML = html;
 }
 
-function showInfoOverlay(id) {
-  var container = document.getElementById('info-bar');
-  if (!container) return;
-  if (!id || !activeLayers[id]) { container.innerHTML = ''; return; }
-  var lc = getLayerConfig(id);
-  if (!lc) { container.innerHTML = ''; return; }
-  container.innerHTML = '<div class="info-card active">' +
-    '<div class="info-title"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + lc.color + ';margin-right:4px"></span> ' + lc.label +
-    ' <span class="badge on">Ativo</span></div>' +
-    '<div class="info-desc">' + lc.desc + '</div></div>';
-}
-
 function toggleLayer(id) {
   var lc = getLayerConfig(id);
   if (!lc || !mapLayers[id]) return;
@@ -264,7 +262,7 @@ function toggleLayer(id) {
   document.querySelectorAll('.layer-btn[data-layer="' + id + '"]').forEach(function(btn) {
     btn.classList.toggle('active', activeLayers[id]);
   });
-  showInfoOverlay(lastToggled);
+  syncPageButtons(id);
   if (mapInstance) mapInstance.invalidateSize();
 }
 
@@ -296,6 +294,41 @@ function setBaseLayer(name) {
   document.querySelectorAll('.layer-btn.base').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.baselayer === name);
   });
+}
+
+function addCenterBox() {
+  var wrapper = document.createElement('div');
+  wrapper.id = 'center-coords';
+  wrapper.style.cssText = 'position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:800;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.92);border:1px solid #dcdfd2;border-radius:6px;padding:4px 8px;font-family:"IBM Plex Sans",sans-serif;font-size:12px;color:#23251d;';
+  var label = document.createElement('span');
+  label.style.cssText = 'pointer-events:none;';
+  wrapper.appendChild(label);
+  var copyBtn = document.createElement('button');
+  copyBtn.textContent = 'Copiar';
+  copyBtn.style.cssText = 'font-family:"IBM Plex Sans",sans-serif;font-size:10px;font-weight:600;padding:2px 8px;border:1px solid #bfc1b7;border-radius:4px;background:#fff;color:#23251d;cursor:pointer;line-height:1.4;';
+  copyBtn.onmouseover = function() { copyBtn.style.background = '#e5e7e0'; };
+  copyBtn.onmouseout = function() { copyBtn.style.background = '#fff'; };
+  wrapper.appendChild(copyBtn);
+  document.body.appendChild(wrapper);
+  function update() {
+    if (!mapInstance) return;
+    var c = mapInstance.getCenter();
+    label.textContent = c.lat.toFixed(5) + ', ' + c.lng.toFixed(5);
+  }
+  copyBtn.onclick = function() {
+    if (!mapInstance) return;
+    var c = mapInstance.getCenter();
+    var scaleEl = document.querySelector('.leaflet-control-scale-line');
+    var scale = scaleEl ? scaleEl.textContent.trim() : '';
+    var text = c.lat.toFixed(5) + ', ' + c.lng.toFixed(5) + (scale ? ' — ' + scale : '');
+    navigator.clipboard.writeText(text).then(function() {
+      var orig = copyBtn.textContent;
+      copyBtn.textContent = 'Copiado!';
+      setTimeout(function() { copyBtn.textContent = orig; }, 1500);
+    });
+  };
+  update();
+  mapInstance.on('move', update);
 }
 
 function toggleSidebar(open) {
@@ -349,8 +382,114 @@ function setupImageViewerDrag() {
   }
 }
 
+/* ============================================================
+   PAGE / SLIDE SYSTEM
+   ============================================================ */
+const PAGE_LAYER_MAP = {
+  0: ['int_brasil', 'int_bahia', 'int_ferrovias', 'int_cidades'],
+  1: ['mac_bahia', 'mac_cidades', 'mac_vias'],
+  2: ['bts_ferrovias', 'bts_rodovias', 'bts_circulo']
+};
+
+function buildPageLayers() {
+  [0, 1, 2].forEach(function(pageIdx) {
+    var container = document.querySelector('.page-layers[data-page="' + pageIdx + '"]');
+    if (!container) return;
+    var ids = PAGE_LAYER_MAP[pageIdx] || [];
+    var html = '';
+    ids.forEach(function(id) {
+      var lc = getLayerConfig(id);
+      if (!lc) return;
+      var isActive = activeLayers[id];
+      html += '<button class="page-layer-btn' + (isActive ? ' active' : '') + '" data-page-layer="' + id + '">' +
+        '<span class="page-dot" style="background:' + lc.color + '"></span> ' + lc.label +
+        '</button>';
+    });
+    container.innerHTML = html;
+  });
+}
+
+function syncPageButtons(id) {
+  document.querySelectorAll('.page-layer-btn[data-page-layer="' + id + '"]').forEach(function(btn) {
+    btn.classList.toggle('active', !!activeLayers[id]);
+  });
+}
+
+function switchSlide(index) {
+  document.querySelectorAll('.slide-tab').forEach(function(tab) {
+    tab.classList.toggle('active', parseInt(tab.dataset.slide) === index);
+  });
+  document.querySelectorAll('.slide-page').forEach(function(page) {
+    page.classList.toggle('active', parseInt(page.dataset.slide) === index);
+  });
+  if (index === 2) {
+    if (mapInstance) mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
+  } else {
+    toggleGallery(false);
+  }
+}
+
+function toggleAllLayers(pageIndex) {
+  var ids = PAGE_LAYER_MAP[pageIndex];
+  if (!ids || !ids.length) return;
+  var anyOff = false;
+  ids.forEach(function(id) { if (!activeLayers[id]) anyOff = true; });
+  ids.forEach(function(id) {
+    var on = anyOff;
+    if (activeLayers[id] !== on) toggleLayer(id);
+  });
+  var btn = document.querySelector('.toggle-all-btn[data-page="' + pageIndex + '"]');
+  if (btn) btn.classList.toggle('active', anyOff);
+}
+
+function buildGallery() {
+  var grid = document.getElementById('gallery-grid');
+  if (!grid) return;
+  var imageKeys = Object.keys(IMAGE_MAP);
+  var html = '';
+  imageKeys.forEach(function(key) {
+    var filename = IMAGE_MAP[key];
+    html += '<div class="gallery-item" data-img-key="' + key + '">' +
+      '<img src="data/img/' + filename + '" alt="' + filename + '" loading="lazy">' +
+      '<span class="gallery-label">' + filename + '</span>' +
+      '</div>';
+  });
+  grid.innerHTML = html;
+}
+
+function toggleGallery(open) {
+  var overlay = document.getElementById('gallery-overlay');
+  if (!overlay) return;
+  var isOpen = open !== undefined ? open : !overlay.classList.contains('open');
+  overlay.classList.toggle('open', isOpen);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   initMap();
+  buildPageLayers();
+  buildGallery();
+
+  document.querySelector('.slide-tabs').addEventListener('click', function(e) {
+    var tab = e.target.closest('.slide-tab');
+    if (tab) switchSlide(parseInt(tab.dataset.slide));
+  });
+
+  document.querySelector('.slide-body').addEventListener('click', function(e) {
+    var btn = e.target.closest('.page-layer-btn');
+    if (btn && btn.dataset.pageLayer) toggleLayer(btn.dataset.pageLayer);
+    var toggleAll = e.target.closest('.toggle-all-btn');
+    if (toggleAll) toggleAllLayers(parseInt(toggleAll.dataset.page));
+  });
+
+  document.getElementById('gallery-grid').addEventListener('click', function(e) {
+    var item = e.target.closest('.gallery-item');
+    if (item) showImageViewer(item.dataset.imgKey);
+  });
+
+  document.getElementById('gallery-open-btn').addEventListener('click', function() { toggleGallery(true); });
+
+  document.getElementById('gallery-close').addEventListener('click', function() { toggleGallery(false); });
+
   document.getElementById('sidebar-toggle').addEventListener('click', function() { toggleSidebar(); });
   document.getElementById('sidebar-close').addEventListener('click', function() { toggleSidebar(false); });
   document.getElementById('sidebar-overlay').addEventListener('click', function() { toggleSidebar(false); });

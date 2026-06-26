@@ -35,6 +35,53 @@
 </div>
 <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
+<!-- ====== PAINEL DE SLIDES ====== -->
+<div class="slide-panel">
+  <div class="slide-tabs">
+    <button class="slide-tab active" data-slide="0">Integração Bahia - Brasil</button>
+    <button class="slide-tab" data-slide="1">Macrorregião</button>
+    <button class="slide-tab" data-slide="2">Parque Logístico da BTS</button>
+  </div>
+
+  <div class="slide-body">
+    <!-- Slide 0: Integração Bahia - Brasil -->
+    <div class="slide-page active" data-slide="0">
+      <h1 class="slide-title">Integração Bahia - Brasil</h1>
+      <p class="slide-subtitle">Brasil, Bahia, ferrovias e cidades do plano de integração</p>
+      <div class="page-layers" data-page="0"></div>
+      <button class="toggle-all-btn" data-page="0">Alternar Todos</button>
+    </div>
+
+    <!-- Slide 1: Macrorregião -->
+    <div class="slide-page" data-slide="1">
+      <h1 class="slide-title">Macrorregião</h1>
+      <p class="slide-subtitle">Bahia, cidades, ferrovias e rodovias da macrorregião</p>
+      <div class="page-layers" data-page="1"></div>
+      <button class="toggle-all-btn" data-page="1">Alternar Todos</button>
+    </div>
+
+    <!-- Slide 2: Parque Logístico da BTS -->
+    <div class="slide-page" data-slide="2">
+      <h1 class="slide-title">Parque Logístico da BTS</h1>
+      <p class="slide-subtitle">Ferrovias e rodovias do parque logístico da BTS</p>
+      <div class="page-layers" data-page="2"></div>
+      <button class="toggle-all-btn" data-page="2">Alternar Todos</button>
+      <button class="gallery-open-btn" id="gallery-open-btn">Abrir Galeria de Imagens</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== GALERIA FLUTUANTE (sobre o mapa) ====== -->
+<div class="gallery-overlay" id="gallery-overlay">
+  <div class="gallery-header">
+    <h3>Galeria de Imagens — Parque Logístico da BTS</h3>
+    <button class="gallery-close" id="gallery-close">&times;</button>
+  </div>
+  <div class="gallery-body">
+    <div class="gallery-grid" id="gallery-grid"></div>
+  </div>
+</div>
+
 <!-- ====== MAPA ====== -->
 <div class="map-page">
   <div class="map-header">
@@ -45,8 +92,6 @@
       <button class="layer-btn base" data-baselayer="satelite">&#x1F4F7;</button>
     </div>
   </div>
-
-  <div id="info-bar" class="info-bar"></div>
 
   <div class="map-container-wrapper">
     <div id="map-container"></div>

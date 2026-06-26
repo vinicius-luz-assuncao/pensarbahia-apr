@@ -64,6 +64,7 @@ html, body {
   flex-direction: column;
   gap: var(--spacing-sm);
   padding: var(--spacing-md);
+  padding-right: calc(340px + var(--spacing-md));
 }
 
 .map-header {
@@ -404,7 +405,7 @@ html, body {
    RESPONSIVE / MOBILE
    ============================================================ */
 @media (max-width: 820px) {
-  .map-page { padding: var(--spacing-sm); gap: var(--spacing-xs); }
+  .map-page { padding: var(--spacing-sm); gap: var(--spacing-xs); padding-right: var(--spacing-sm); }
   .map-header { flex-wrap: wrap; gap: var(--spacing-xs); }
   .map-header h2 { font-size: 14px; }
   .sidebar-toggle { font-size: 13px; padding: 4px 8px; }
@@ -449,8 +450,8 @@ html, body {
   border: 1px solid var(--hairline);
   border-radius: var(--rounded-md);
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  width: 320px;
-  max-height: 360px;
+  width: 640px;
+  max-height: 720px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -494,7 +495,7 @@ html, body {
 }
 .image-viewer .iv-body img {
   max-width: 100%;
-  max-height: 280px;
+  max-height: 560px;
   display: block;
 }
 
@@ -503,3 +504,327 @@ html, body {
   .map-page { padding: var(--spacing-xs); }
   .sidebar { width: 100%; right: -100%; }
 }
+
+/* ============================================================
+   SLIDE PANEL (left side overlay)
+   ============================================================ */
+.slide-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 340px;
+  height: 100%;
+  z-index: 900;
+  background: var(--surface-card);
+  border-left: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 16px rgba(0,0,0,0.08);
+}
+
+.slide-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--hairline);
+  flex-shrink: 0;
+}
+
+.slide-tab {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-md);
+  background: var(--surface-doc);
+  color: var(--body);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+.slide-tab:hover { border-color: var(--primary); color: var(--ink); }
+.slide-tab.active {
+  background: var(--ink);
+  color: var(--on-dark);
+  border-color: var(--ink);
+}
+
+.slide-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+}
+
+.slide-page {
+  display: none;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+.slide-page.active { display: flex; }
+
+.slide-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+.slide-subtitle {
+  font-size: 14px;
+  color: var(--mute);
+  margin-top: -8px;
+}
+
+.page-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-layer-btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-md);
+  background: var(--surface-doc);
+  color: var(--body);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.page-layer-btn:hover { border-color: var(--primary); color: var(--ink); }
+.page-layer-btn.active {
+  background: var(--ink);
+  color: var(--on-dark);
+  border-color: var(--ink);
+}
+.page-layer-btn .page-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   IMAGE GRID (Parque Logístico)
+   ============================================================ */
+.image-grid-section {
+  border-top: 1px solid var(--hairline);
+  padding-top: var(--spacing-lg);
+}
+
+.grid-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: var(--spacing-md);
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.image-grid-item {
+  position: relative;
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  aspect-ratio: 4 / 3;
+  background: var(--surface-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.image-grid-item:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  z-index: 1;
+}
+
+.image-grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-grid-item .grid-item-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 820px) {
+  .slide-panel {
+    width: 100%;
+    height: 50%;
+    top: auto;
+    bottom: 0;
+    border-left: none;
+    border-top: 1px solid var(--hairline);
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+  }
+  .slide-tabs {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .slide-tab {
+    flex-shrink: 0;
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+  .slide-title { font-size: 22px; }
+  .image-grid { grid-template-columns: 1fr 1fr; }
+
+  .gallery-overlay {
+    width: 100% !important;
+    right: 0 !important;
+    border-radius: 0 !important;
+    top: auto !important;
+    bottom: 50% !important;
+    max-height: 50% !important;
+  }
+}
+
+/* ============================================================
+   LARGE IMAGE GALLERY (floating over map ocean area)
+   ============================================================ */
+.gallery-overlay {
+  position: fixed;
+  top: 60px;
+  left: 16px;
+  width: calc(50vw - 24px);
+  max-width: 1500px;
+  max-height: calc(100vh - 100px);
+  z-index: 950;
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-lg);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.gallery-overlay.open { display: flex; }
+
+.gallery-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--hairline);
+  flex-shrink: 0;
+}
+
+.gallery-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.gallery-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--mute);
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: var(--rounded-md);
+}
+.gallery-close:hover { color: var(--ink); background: var(--surface-soft); }
+
+.gallery-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-lg);
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.gallery-item {
+  position: relative;
+  border: 1px solid var(--hairline);
+  border-radius: var(--rounded-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  aspect-ratio: 4 / 3;
+  background: var(--surface-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gallery-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  z-index: 2;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gallery-item .gallery-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toggle-all-btn, .gallery-open-btn {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border: 1px solid var(--primary);
+  border-radius: var(--rounded-md);
+  background: var(--primary);
+  color: var(--on-primary);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  margin-top: var(--spacing-sm);
+}
+.toggle-all-btn { border-color: var(--ink); background: var(--ink); color: var(--on-dark); }
+.toggle-all-btn:hover { background: var(--charcoal); }
+.toggle-all-btn.active { background: var(--accent-red-soft); border-color: var(--accent-red); color: var(--accent-red); }
+.gallery-open-btn:hover { background: var(--primary-pressed); }
