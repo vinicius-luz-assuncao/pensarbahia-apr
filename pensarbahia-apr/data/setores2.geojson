@@ -1,0 +1,49 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Setor Oeste — Gr\u00e3os", "color": "#7c44a6", "fillOpacity": 0.12 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-46.50, -11.50], [-46.00, -12.50], [-45.00, -13.00],
+          [-44.50, -12.50], [-44.80, -11.80], [-45.50, -11.00]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Setor Centro-Sul — Minera\u00e7\u00e3o", "color": "#7c44a6", "fillOpacity": 0.12 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-42.50, -13.50], [-42.50, -14.50], [-41.50, -15.00],
+          [-40.80, -14.50], [-41.00, -13.80], [-41.80, -13.20]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Setor Norte — Irriga\u00e7\u00e3o", "color": "#7c44a6", "fillOpacity": 0.12 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-40.50, -8.60], [-40.50, -9.50], [-39.50, -10.00],
+          [-39.00, -9.50], [-39.20, -8.80], [-39.80, -8.53]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Setor Litoral Sul — Celulose", "color": "#7c44a6", "fillOpacity": 0.12 },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-39.80, -15.50], [-39.80, -16.50], [-39.40, -17.00],
+          [-39.10, -16.50], [-39.20, -15.80], [-39.50, -15.20]
+        ]]
+      }
+    }
+  ]
+}

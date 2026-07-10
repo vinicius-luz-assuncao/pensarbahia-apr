@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "name": "Salvador", "type": "Porto" }, "geometry": { "type": "Point", "coordinates": [-38.50, -12.97] } },
+    { "type": "Feature", "properties": { "name": "Feira de Santana", "type": "Entroncamento" }, "geometry": { "type": "Point", "coordinates": [-38.97, -12.26] } },
+    { "type": "Feature", "properties": { "name": "Vit\u00f3ria da Conquista", "type": "Centro Regional" }, "geometry": { "type": "Point", "coordinates": [-40.84, -14.86] } },
+    { "type": "Feature", "properties": { "name": "Barreiras", "type": "Agroneg\u00f3cio" }, "geometry": { "type": "Point", "coordinates": [-44.99, -12.15] } },
+    { "type": "Feature", "properties": { "name": "Ilh\u00e9us", "type": "Porto" }, "geometry": { "type": "Point", "coordinates": [-39.04, -14.79] } },
+    { "type": "Feature", "properties": { "name": "Itabuna", "type": "Centro Regional" }, "geometry": { "type": "Point", "coordinates": [-39.28, -14.79] } },
+    { "type": "Feature", "properties": { "name": "Juazeiro", "type": "Irriga\u00e7\u00e3o" }, "geometry": { "type": "Point", "coordinates": [-40.50, -9.42] } },
+    { "type": "Feature", "properties": { "name": "Cama\u00e7ari", "type": "Industrial" }, "geometry": { "type": "Point", "coordinates": [-38.32, -12.70] } },
+    { "type": "Feature", "properties": { "name": "Alagoinhas", "type": "Entroncamento" }, "geometry": { "type": "Point", "coordinates": [-38.43, -12.14] } },
+    { "type": "Feature", "properties": { "name": "Eun\u00e1polis", "type": "Centro Regional" }, "geometry": { "type": "Point", "coordinates": [-39.58, -16.38] } },
+    { "type": "Feature", "properties": { "name": "Teixeira de Freitas", "type": "Agroneg\u00f3cio" }, "geometry": { "type": "Point", "coordinates": [-39.74, -17.54] } },
+    { "type": "Feature", "properties": { "name": "Jequi\u00e9", "type": "Entroncamento" }, "geometry": { "type": "Point", "coordinates": [-40.07, -13.86] } },
+    { "type": "Feature", "properties": { "name": "Brumado", "type": "Minera\u00e7\u00e3o" }, "geometry": { "type": "Point", "coordinates": [-41.67, -14.20] } },
+    { "type": "Feature", "properties": { "name": "Lu\u00eds Eduardo Magalh\u00e3es", "type": "Agroneg\u00f3cio" }, "geometry": { "type": "Point", "coordinates": [-45.80, -12.09] } },
+    { "type": "Feature", "properties": { "name": "Lauro de Freitas", "type": "Metropolitano" }, "geometry": { "type": "Point", "coordinates": [-38.33, -12.90] } },
+    { "type": "Feature", "properties": { "name": "Sim\u00f5es Filho", "type": "Industrial" }, "geometry": { "type": "Point", "coordinates": [-38.40, -12.79] } },
+    { "type": "Feature", "properties": { "name": "Candeias", "type": "Porto/Refino" }, "geometry": { "type": "Point", "coordinates": [-38.48, -12.68] } },
+    { "type": "Feature", "properties": { "name": "Dias d'\u00c1vila", "type": "Industrial" }, "geometry": { "type": "Point", "coordinates": [-38.30, -12.61] } }
+  ]
+}
