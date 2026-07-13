@@ -112,7 +112,8 @@ const LAYER_GROUPS = [
       {
         id: 'mac_cidades', label: 'Pontos Log\u00edsticos',
         file: 'data/MACRORREGI\u00c3O.geojson',
-        type: 'bts', subtype: 'point', color: '#722f37'
+        type: 'bts', subtype: 'point', color: '#722f37',
+        labelDirections: { 'Cama\u00e7ari': 'top', 'Salvador': 'bottom' }
       },
       {
         id: 'mac_vias', label: 'Ferrovias e Rodovias',
