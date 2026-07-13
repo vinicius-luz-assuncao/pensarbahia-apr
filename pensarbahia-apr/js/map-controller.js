@@ -1770,6 +1770,34 @@ function createVideoOverlay(slideIdx, data) {
     }
     scheduleVideoSave();
   });
+  var dragHint = document.createElement('span');
+  dragHint.textContent = '\u2261';
+  dragHint.title = 'Arraste para mover';
+  dragHint.style.cssText = 'color:rgba(255,255,255,0.6);cursor:grab;padding:0 4px;font-size:14px;';
+  var sizeDec = document.createElement('button');
+  sizeDec.textContent = '\u2212';
+  sizeDec.title = 'Diminuir';
+  sizeDec.style.cssText = 'font-family:IBM Plex Sans,sans-serif;font-size:14px;font-weight:700;padding:0 6px;border:1px solid rgba(255,255,255,0.3);border-radius:3px;background:transparent;color:rgba(255,255,255,0.8);cursor:pointer;line-height:1.5;';
+  sizeDec.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var w = box.offsetWidth;
+    var h = box.offsetHeight;
+    box.style.width = Math.round(w * 0.85) + 'px';
+    box.style.height = Math.round(h * 0.85) + 'px';
+    scheduleVideoSave();
+  });
+  var sizeInc = document.createElement('button');
+  sizeInc.textContent = '+';
+  sizeInc.title = 'Aumentar';
+  sizeInc.style.cssText = 'font-family:IBM Plex Sans,sans-serif;font-size:14px;font-weight:700;padding:0 6px;border:1px solid rgba(255,255,255,0.3);border-radius:3px;background:transparent;color:rgba(255,255,255,0.8);cursor:pointer;line-height:1.5;';
+  sizeInc.addEventListener('click', function(e) {
+    e.stopPropagation();
+    var w = box.offsetWidth;
+    var h = box.offsetHeight;
+    box.style.width = Math.round(w * 1.18) + 'px';
+    box.style.height = Math.round(h * 1.18) + 'px';
+    scheduleVideoSave();
+  });
   var closeBtn = document.createElement('span');
   closeBtn.className = 'video-tbar-close';
   closeBtn.textContent = '\u00D7';
@@ -1779,7 +1807,10 @@ function createVideoOverlay(slideIdx, data) {
     removeVideoOverlay(slideIdx, id);
   });
   tbar.appendChild(closeBtn);
+  tbar.appendChild(dragHint);
   tbar.appendChild(sel);
+  tbar.appendChild(sizeDec);
+  tbar.appendChild(sizeInc);
   box.appendChild(tbar);
 
   // Video
@@ -1806,8 +1837,8 @@ function createVideoOverlay(slideIdx, data) {
   });
   document.addEventListener('mousemove', function(e) {
     if (!dragging) return;
-    box.style.left = Math.max(0, origX + e.clientX - startX) + 'px';
-    box.style.top = Math.max(0, origY + e.clientY - startY) + 'px';
+    box.style.left = (origX + e.clientX - startX) + 'px';
+    box.style.top = (origY + e.clientY - startY) + 'px';
   });
   document.addEventListener('mouseup', function() {
     if (!dragging) return;
