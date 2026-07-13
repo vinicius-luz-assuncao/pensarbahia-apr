@@ -1360,11 +1360,12 @@ html, body {
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #fff;
+  color: #fff !important;
   outline: none;
   overflow: auto;
   min-height: 50px;
 }
+.float-body * { color: #fff !important; }
 
 /* ============================================================
    VIDEO OVERLAYS (floating over map, mix-blend-mode multiply)
