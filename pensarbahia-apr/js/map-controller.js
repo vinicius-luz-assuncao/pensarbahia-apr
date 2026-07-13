@@ -1761,7 +1761,9 @@ function createVideoOverlay(slideIdx, data) {
     sel.appendChild(opt);
   });
   sel.addEventListener('change', function() {
-    changeVideo(box, 'videos/' + sel.value);
+    var v = box.querySelector('video');
+    if (v) { v.src = 'videos/' + sel.value; v.play().catch(function(){}); }
+    scheduleVideoSave();
   });
   var dragHint = document.createElement('span');
   dragHint.textContent = '\u2261';
@@ -1802,66 +1804,16 @@ function createVideoOverlay(slideIdx, data) {
   tbar.appendChild(sizeInc);
   box.appendChild(tbar);
 
-  // Canvas-based chroma key
-  var canvas = document.createElement('canvas');
-  canvas.style.cssText = 'width:100%;height:100%;display:block;pointer-events:none;';
-  box.appendChild(canvas);
-
+  // Video element
   var video = document.createElement('video');
   video.src = 'videos/' + file;
   video.muted = true;
   video.loop = true;
   video.playsInline = true;
   video.autoplay = true;
-  video.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;';
   box.appendChild(video);
 
   wrapper.appendChild(box);
-
-  var ctx = canvas.getContext('2d');
-  var animId = null, stopped = false;
-  var w = 0, h = 0;
-
-  function resizeCanvas() {
-    var rect = box.getBoundingClientRect();
-    w = Math.round(rect.width);
-    h = Math.round(rect.height);
-    if (w > 0 && h > 0) {
-      canvas.width = w;
-      canvas.height = h;
-    }
-  }
-
-  function processFrame() {
-    if (stopped) return;
-    if (video.paused || video.ended || w === 0 || h === 0) {
-      animId = requestAnimationFrame(processFrame);
-      return;
-    }
-    try {
-      ctx.drawImage(video, 0, 0, w, h);
-      var imageData = ctx.getImageData(0, 0, w, h);
-      var d = imageData.data;
-      for (var i = 0; i < d.length; i += 4) {
-        if (d[i] > 180 && d[i+1] > 180 && d[i+2] > 180) {
-          d[i+3] = 0;
-        }
-      }
-      ctx.putImageData(imageData, 0, 0);
-    } catch(e) {}
-    animId = requestAnimationFrame(processFrame);
-  }
-
-  function startRender() {
-    resizeCanvas();
-    if (!animId) animId = requestAnimationFrame(processFrame);
-  }
-
-  video.addEventListener('play', startRender);
-  video.addEventListener('canplay', function() {
-    video.play().catch(function(){});
-    startRender();
-  });
 
   // Drag
   var dragging = false, startX, startY, origX, origY;
@@ -1874,34 +1826,16 @@ function createVideoOverlay(slideIdx, data) {
     origY = box.offsetTop;
     e.preventDefault();
   });
-  function onMouseMove(e) {
+  document.addEventListener('mousemove', function(e) {
     if (!dragging) return;
     box.style.left = (origX + e.clientX - startX) + 'px';
     box.style.top = (origY + e.clientY - startY) + 'px';
-  }
-  function onMouseUp() {
+  });
+  document.addEventListener('mouseup', function() {
     if (!dragging) return;
     dragging = false;
     scheduleVideoSave();
-  }
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup', onMouseUp);
-
-  // Resize save
-  try {
-    var ro = new ResizeObserver(function() { scheduleVideoSave(); });
-    ro.observe(box);
-  } catch(e) {}
-
-  // Cleanup on remove
-  box._cleanup = function() {
-    stopped = true;
-    if (animId) { cancelAnimationFrame(animId); animId = null; }
-    video.pause(); video.src = ''; video.load();
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
-    try { ro.disconnect(); } catch(e) {}
-  };
+  });
 
   // Save to state
   if (!videoOverlays[slideIdx]) videoOverlays[slideIdx] = [];
@@ -1938,27 +1872,11 @@ function scheduleVideoSave() {
   }, 300);
 }
 
-function changeVideo(box, src) {
-  var video = box.querySelector('video');
-  var canvas = box.querySelector('canvas');
-  if (video) {
-    video.src = src;
-    video.load();
-    video.play().catch(function(){});
-  }
-  if (canvas) {
-    var ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-  scheduleVideoSave();
-}
+
 
 function removeVideoOverlay(slideIdx, id) {
   var box = document.querySelector('.video-overlay[data-vid="' + id + '"]');
-  if (box) {
-    if (box._cleanup) box._cleanup();
-    box.remove();
-  }
+  if (box) { box.remove(); }
   if (videoOverlays[slideIdx]) {
     videoOverlays[slideIdx] = videoOverlays[slideIdx].filter(function(b) { return b.id !== id; });
     saveVideoOverlays(slideIdx);
@@ -1966,10 +1884,7 @@ function removeVideoOverlay(slideIdx, id) {
 }
 
 function restoreVideoOverlays(slideIdx) {
-  document.querySelectorAll('.video-overlay').forEach(function(b) {
-    if (b._cleanup) b._cleanup();
-    b.remove();
-  });
+  document.querySelectorAll('.video-overlay').forEach(function(b) { b.remove(); });
   try {
     var saved = localStorage.getItem('pensarbahia_videos_' + slideIdx);
     if (saved) {

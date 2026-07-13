@@ -1383,10 +1383,13 @@ html, body {
   resize: both;
 }
 .video-overlay:hover { border-color: rgba(255,255,255,0.3); }
-.video-overlay canvas {
+.video-overlay video {
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  filter: brightness(1.6) contrast(1.3);
   pointer-events: none;
 }
 .video-tbar {
