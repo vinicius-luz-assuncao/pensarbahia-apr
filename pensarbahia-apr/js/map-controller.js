@@ -1763,12 +1763,7 @@ function createVideoOverlay(slideIdx, data) {
     sel.appendChild(opt);
   });
   sel.addEventListener('change', function() {
-    var video = box.querySelector('video');
-    if (video) {
-      video.src = 'videos/' + sel.value;
-      video.play().catch(function(){});
-    }
-    scheduleVideoSave();
+    changeVideo(box, 'videos/' + sel.value);
   });
   var dragHint = document.createElement('span');
   dragHint.textContent = '\u2261';
@@ -1813,15 +1808,62 @@ function createVideoOverlay(slideIdx, data) {
   tbar.appendChild(sizeInc);
   box.appendChild(tbar);
 
-  // Video
+  // Canvas-based chroma key
+  var canvas = document.createElement('canvas');
+  canvas.style.cssText = 'width:100%;height:100%;display:block;pointer-events:none;';
+  box.appendChild(canvas);
+
   var video = document.createElement('video');
-  video.muted = true;
-  video.playsInline = true;
-  function tryPlay() { video.play().catch(function(){}); }
-  video.addEventListener('canplay', tryPlay);
-  if (video.readyState >= 3) setTimeout(tryPlay, 50);
   video.src = 'videos/' + file;
+  video.muted = true;
+  video.loop = true;
+  video.playsInline = true;
+  video.autoplay = true;
+  video.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;';
   box.appendChild(video);
+
+  var ctx = canvas.getContext('2d');
+  var animId = null;
+  var w = 0, h = 0;
+
+  function resizeCanvas() {
+    var rect = box.getBoundingClientRect();
+    var cw = Math.round(rect.width);
+    var ch = Math.round(rect.height);
+    if (cw !== w || ch !== h) {
+      w = cw; h = ch;
+      canvas.width = w;
+      canvas.height = h;
+    }
+  }
+
+  function processFrame() {
+    if (video.paused || video.ended) { animId = requestAnimationFrame(processFrame); return; }
+    resizeCanvas();
+    if (w > 0 && h > 0) {
+      ctx.drawImage(video, 0, 0, w, h);
+      var imageData = ctx.getImageData(0, 0, w, h);
+      var d = imageData.data;
+      for (var i = 0; i < d.length; i += 4) {
+        if (d[i] > 180 && d[i+1] > 180 && d[i+2] > 180) {
+          d[i+3] = 0;
+        }
+      }
+      ctx.putImageData(imageData, 0, 0);
+    }
+    animId = requestAnimationFrame(processFrame);
+  }
+
+  video.addEventListener('play', function() {
+    resizeCanvas();
+    if (!animId) animId = requestAnimationFrame(processFrame);
+  });
+
+  // Initial render when video data loads
+  video.addEventListener('canplay', function() {
+    video.play().catch(function(){});
+    if (!animId) animId = requestAnimationFrame(processFrame);
+  });
 
   wrapper.appendChild(box);
 
@@ -1850,6 +1892,11 @@ function createVideoOverlay(slideIdx, data) {
   // Resize save
   var ro = new ResizeObserver(function() { scheduleVideoSave(); });
   ro.observe(box);
+
+  // Play after load
+  video.addEventListener('canplay', function() {
+    video.play().catch(function(){});
+  });
 
   // Save to state
   if (!videoOverlays[slideIdx]) videoOverlays[slideIdx] = [];
@@ -1886,11 +1933,33 @@ function scheduleVideoSave() {
   }, 300);
 }
 
+function changeVideo(box, src) {
+  var video = box.querySelector('video');
+  var canvas = box.querySelector('canvas');
+  if (video) {
+    video.src = src;
+    video.load();
+    video.play().catch(function(){});
+  }
+  if (canvas) {
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  scheduleVideoSave();
+}
+
 function removeVideoOverlay(slideIdx, id) {
   var box = document.querySelector('.video-overlay[data-vid="' + id + '"]');
-  var video = box ? box.querySelector('video') : null;
-  if (video) { video.pause(); video.src = ''; }
-  if (box) box.remove();
+  if (box) {
+    var video = box.querySelector('video');
+    var canvas = box.querySelector('canvas');
+    if (video) { video.pause(); video.src = ''; video.load(); }
+    if (canvas) {
+      var ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    box.remove();
+  }
   if (videoOverlays[slideIdx]) {
     videoOverlays[slideIdx] = videoOverlays[slideIdx].filter(function(b) { return b.id !== id; });
     saveVideoOverlays(slideIdx);
@@ -1900,7 +1969,7 @@ function removeVideoOverlay(slideIdx, id) {
 function restoreVideoOverlays(slideIdx) {
   document.querySelectorAll('.video-overlay').forEach(function(b) {
     var v = b.querySelector('video');
-    if (v) { v.pause(); v.src = ''; }
+    if (v) { v.pause(); v.src = ''; v.load(); }
     b.remove();
   });
   try {

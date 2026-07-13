@@ -1360,12 +1360,11 @@ html, body {
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #fff !important;
+  color: #fff;
   outline: none;
   overflow: auto;
   min-height: 50px;
 }
-.float-body * { color: #fff !important; }
 
 /* ============================================================
    VIDEO OVERLAYS (floating over map, mix-blend-mode multiply)
@@ -1382,14 +1381,12 @@ html, body {
   flex-direction: column;
   overflow: hidden;
   resize: both;
-  mix-blend-mode: multiply;
 }
 .video-overlay:hover { border-color: rgba(255,255,255,0.3); }
-.video-overlay video {
+.video-overlay canvas {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: contain;
   pointer-events: none;
 }
 .video-tbar {
