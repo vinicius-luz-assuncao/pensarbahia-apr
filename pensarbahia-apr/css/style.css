@@ -434,6 +434,7 @@ html, body {
    LEAFLET OVERRIDES
    ============================================================ */
 .leaflet-control-attribution { font-size: 10px !important; }
+.leaflet-control-zoom { display: none !important; }
 .leaflet-popup-content-wrapper { border-radius: var(--radius-sm) !important; box-shadow: var(--shadow-md) !important; }
 .leaflet-popup-content { font-family: 'IBM Plex Sans', sans-serif !important; font-size: 13px !important; }
 
