@@ -856,13 +856,17 @@ function initMtoNav() {
   function restoreOverlayRect(slideIdx) {
     try {
       var saved = localStorage.getItem('pensarbahia_overlay_rect_' + slideIdx);
+      var r;
       if (saved) {
-        var r = JSON.parse(saved);
-        if (r.left) overlay.style.left = r.left + 'px';
-        if (r.top) overlay.style.top = r.top + 'px';
-        if (r.width) overlay.style.width = r.width + 'px';
-        if (r.height) overlay.style.height = r.height + 'px';
+        r = JSON.parse(saved);
+      } else {
+        r = { left: 32, top: 32 };
+        localStorage.setItem('pensarbahia_overlay_rect_' + slideIdx, JSON.stringify(r));
       }
+      if (r.left) overlay.style.left = r.left + 'px';
+      if (r.top) overlay.style.top = r.top + 'px';
+      if (r.width) overlay.style.width = r.width + 'px';
+      if (r.height) overlay.style.height = r.height + 'px';
     } catch(e) {}
   }
 
@@ -1118,24 +1122,25 @@ function switchSlide(index) {
   // Save current overlay rect before switching, restore new slide's rect
   if (mto) {
     try {
-      var curRect = { left: mto.offsetLeft, top: mto.offsetTop, width: mto.offsetWidth, height: mto.offsetHeight };
-      localStorage.setItem('pensarbahia_overlay_rect_' + currentSlide, JSON.stringify(curRect));
+      if (mto.classList.contains('active')) {
+        var curRect = { left: mto.offsetLeft, top: mto.offsetTop, width: mto.offsetWidth, height: mto.offsetHeight };
+        localStorage.setItem('pensarbahia_overlay_rect_' + currentSlide, JSON.stringify(curRect));
+      }
     } catch(e) {}
     // Restore new slide's rect
     try {
       var saved = localStorage.getItem('pensarbahia_overlay_rect_' + index);
+      var r;
       if (saved) {
-        var r = JSON.parse(saved);
-        if (r.left) mto.style.left = r.left + 'px';
-        if (r.top) mto.style.top = r.top + 'px';
-        if (r.width) mto.style.width = r.width + 'px';
-        if (r.height) mto.style.height = r.height + 'px';
+        r = JSON.parse(saved);
       } else {
-        mto.style.left = '';
-        mto.style.top = '';
-        mto.style.width = '';
-        mto.style.height = '';
+        r = { left: 32, top: 32 };
+        localStorage.setItem('pensarbahia_overlay_rect_' + index, JSON.stringify(r));
       }
+      if (r.left) mto.style.left = r.left + 'px';
+      if (r.top) mto.style.top = r.top + 'px';
+      if (r.width) mto.style.width = r.width + 'px';
+      if (r.height) mto.style.height = r.height + 'px';
     } catch(e) {}
   }
 
