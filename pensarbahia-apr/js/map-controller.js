@@ -1775,10 +1775,8 @@ function createVideoOverlay(slideIdx, data) {
   sizeDec.style.cssText = 'font-family:IBM Plex Sans,sans-serif;font-size:14px;font-weight:700;padding:0 6px;border:1px solid rgba(255,255,255,0.3);border-radius:3px;background:transparent;color:rgba(255,255,255,0.8);cursor:pointer;line-height:1.5;';
   sizeDec.addEventListener('click', function(e) {
     e.stopPropagation();
-    var w = box.offsetWidth;
-    var h = box.offsetHeight;
-    box.style.width = Math.round(w * 0.85) + 'px';
-    box.style.height = Math.round(h * 0.85) + 'px';
+    box.style.width = Math.round(box.offsetWidth * 0.85) + 'px';
+    box.style.height = Math.round(box.offsetHeight * 0.85) + 'px';
     scheduleVideoSave();
   });
   var sizeInc = document.createElement('button');
@@ -1787,10 +1785,8 @@ function createVideoOverlay(slideIdx, data) {
   sizeInc.style.cssText = 'font-family:IBM Plex Sans,sans-serif;font-size:14px;font-weight:700;padding:0 6px;border:1px solid rgba(255,255,255,0.3);border-radius:3px;background:transparent;color:rgba(255,255,255,0.8);cursor:pointer;line-height:1.5;';
   sizeInc.addEventListener('click', function(e) {
     e.stopPropagation();
-    var w = box.offsetWidth;
-    var h = box.offsetHeight;
-    box.style.width = Math.round(w * 1.18) + 'px';
-    box.style.height = Math.round(h * 1.18) + 'px';
+    box.style.width = Math.round(box.offsetWidth * 1.18) + 'px';
+    box.style.height = Math.round(box.offsetHeight * 1.18) + 'px';
     scheduleVideoSave();
   });
   var closeBtn = document.createElement('span');
@@ -1822,25 +1818,29 @@ function createVideoOverlay(slideIdx, data) {
   video.style.cssText = 'position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;';
   box.appendChild(video);
 
+  wrapper.appendChild(box);
+
   var ctx = canvas.getContext('2d');
-  var animId = null;
+  var animId = null, stopped = false;
   var w = 0, h = 0;
 
   function resizeCanvas() {
     var rect = box.getBoundingClientRect();
-    var cw = Math.round(rect.width);
-    var ch = Math.round(rect.height);
-    if (cw !== w || ch !== h) {
-      w = cw; h = ch;
+    w = Math.round(rect.width);
+    h = Math.round(rect.height);
+    if (w > 0 && h > 0) {
       canvas.width = w;
       canvas.height = h;
     }
   }
 
   function processFrame() {
-    if (video.paused || video.ended) { animId = requestAnimationFrame(processFrame); return; }
-    resizeCanvas();
-    if (w > 0 && h > 0) {
+    if (stopped) return;
+    if (video.paused || video.ended || w === 0 || h === 0) {
+      animId = requestAnimationFrame(processFrame);
+      return;
+    }
+    try {
       ctx.drawImage(video, 0, 0, w, h);
       var imageData = ctx.getImageData(0, 0, w, h);
       var d = imageData.data;
@@ -1850,22 +1850,20 @@ function createVideoOverlay(slideIdx, data) {
         }
       }
       ctx.putImageData(imageData, 0, 0);
-    }
+    } catch(e) {}
     animId = requestAnimationFrame(processFrame);
   }
 
-  video.addEventListener('play', function() {
+  function startRender() {
     resizeCanvas();
     if (!animId) animId = requestAnimationFrame(processFrame);
-  });
+  }
 
-  // Initial render when video data loads
+  video.addEventListener('play', startRender);
   video.addEventListener('canplay', function() {
     video.play().catch(function(){});
-    if (!animId) animId = requestAnimationFrame(processFrame);
+    startRender();
   });
-
-  wrapper.appendChild(box);
 
   // Drag
   var dragging = false, startX, startY, origX, origY;
@@ -1878,25 +1876,34 @@ function createVideoOverlay(slideIdx, data) {
     origY = box.offsetTop;
     e.preventDefault();
   });
-  document.addEventListener('mousemove', function(e) {
+  function onMouseMove(e) {
     if (!dragging) return;
     box.style.left = (origX + e.clientX - startX) + 'px';
     box.style.top = (origY + e.clientY - startY) + 'px';
-  });
-  document.addEventListener('mouseup', function() {
+  }
+  function onMouseUp() {
     if (!dragging) return;
     dragging = false;
     scheduleVideoSave();
-  });
+  }
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
 
   // Resize save
-  var ro = new ResizeObserver(function() { scheduleVideoSave(); });
-  ro.observe(box);
+  try {
+    var ro = new ResizeObserver(function() { scheduleVideoSave(); });
+    ro.observe(box);
+  } catch(e) {}
 
-  // Play after load
-  video.addEventListener('canplay', function() {
-    video.play().catch(function(){});
-  });
+  // Cleanup on remove
+  box._cleanup = function() {
+    stopped = true;
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+    video.pause(); video.src = ''; video.load();
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+    try { ro.disconnect(); } catch(e) {}
+  };
 
   // Save to state
   if (!videoOverlays[slideIdx]) videoOverlays[slideIdx] = [];
@@ -1951,13 +1958,7 @@ function changeVideo(box, src) {
 function removeVideoOverlay(slideIdx, id) {
   var box = document.querySelector('.video-overlay[data-vid="' + id + '"]');
   if (box) {
-    var video = box.querySelector('video');
-    var canvas = box.querySelector('canvas');
-    if (video) { video.pause(); video.src = ''; video.load(); }
-    if (canvas) {
-      var ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    if (box._cleanup) box._cleanup();
     box.remove();
   }
   if (videoOverlays[slideIdx]) {
@@ -1968,8 +1969,7 @@ function removeVideoOverlay(slideIdx, id) {
 
 function restoreVideoOverlays(slideIdx) {
   document.querySelectorAll('.video-overlay').forEach(function(b) {
-    var v = b.querySelector('video');
-    if (v) { v.pause(); v.src = ''; v.load(); }
+    if (b._cleanup) b._cleanup();
     b.remove();
   });
   try {
