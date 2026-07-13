@@ -1365,3 +1365,66 @@ html, body {
   overflow: auto;
   min-height: 50px;
 }
+
+/* ============================================================
+   VIDEO OVERLAYS (floating over map, mix-blend-mode multiply)
+   ============================================================ */
+.video-overlay {
+  position: absolute;
+  z-index: 560;
+  min-width: 160px;
+  min-height: 90px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  resize: both;
+  isolation: isolate;
+}
+.video-overlay:hover { border-color: rgba(255,255,255,0.3); }
+.video-overlay video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.video-tbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  background: rgba(10,31,61,0.75);
+  backdrop-filter: blur(4px);
+  cursor: grab;
+  user-select: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 2;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+.video-overlay:hover .video-tbar { opacity: 1; }
+.video-tbar:active { cursor: grabbing; }
+.video-tbar-close {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  padding: 0 6px;
+  line-height: 1;
+}
+.video-tbar-close:hover { color: var(--accent-red); }
+.video-tbar-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.6);
+  margin-right: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
