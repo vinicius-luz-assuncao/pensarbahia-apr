@@ -1815,10 +1815,12 @@ function createVideoOverlay(slideIdx, data) {
 
   // Video
   var video = document.createElement('video');
-  video.src = 'videos/' + file;
   video.muted = true;
   video.playsInline = true;
-  video.autoplay = true;
+  function tryPlay() { video.play().catch(function(){}); }
+  video.addEventListener('canplay', tryPlay);
+  if (video.readyState >= 3) setTimeout(tryPlay, 50);
+  video.src = 'videos/' + file;
   box.appendChild(video);
 
   wrapper.appendChild(box);
@@ -1848,11 +1850,6 @@ function createVideoOverlay(slideIdx, data) {
   // Resize save
   var ro = new ResizeObserver(function() { scheduleVideoSave(); });
   ro.observe(box);
-
-  // Play after load
-  video.addEventListener('canplay', function() {
-    video.play().catch(function(){});
-  });
 
   // Save to state
   if (!videoOverlays[slideIdx]) videoOverlays[slideIdx] = [];
