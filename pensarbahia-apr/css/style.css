@@ -1381,7 +1381,7 @@ html, body {
   flex-direction: column;
   overflow: hidden;
   resize: both;
-  isolation: isolate;
+  mix-blend-mode: multiply;
 }
 .video-overlay:hover { border-color: rgba(255,255,255,0.3); }
 .video-overlay video {
@@ -1389,7 +1389,6 @@ html, body {
   height: 100%;
   display: block;
   object-fit: contain;
-  mix-blend-mode: multiply;
   pointer-events: none;
 }
 .video-tbar {
