@@ -1817,7 +1817,6 @@ function createVideoOverlay(slideIdx, data) {
   var video = document.createElement('video');
   video.src = 'videos/' + file;
   video.muted = true;
-  video.loop = true;
   video.playsInline = true;
   video.autoplay = true;
   box.appendChild(video);
