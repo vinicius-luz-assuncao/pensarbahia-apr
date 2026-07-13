@@ -1242,8 +1242,6 @@ document.addEventListener('DOMContentLoaded', function() {
   if (mto && currentSlide >= 1 && currentSlide <= 4) mto.classList.add('active');
   // Initial float box restore (for slide 1 which is first navigable)
   restoreFloatBoxes(1);
-  // Initial video overlay restore
-  restoreVideoOverlays(1);
 
   document.querySelector('.slide-tabs').addEventListener('click', function(e) {
     var tab = e.target.closest('.slide-tab');
