@@ -939,7 +939,7 @@ html, body {
   font-size: 22px;
   font-weight: 700;
   line-height: 1.3;
-  color: var(--blue-active);
+  color: #fff;
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1252,8 +1252,8 @@ html, body {
   z-index: 550;
   min-width: 240px;
   min-height: 100px;
-  background: var(--surface-card);
-  border: 1px solid var(--hairline);
+  background: var(--blue-deep);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-md);
   display: flex;
@@ -1261,16 +1261,16 @@ html, body {
   overflow: hidden;
   resize: both;
 }
-.float-textbox:hover { border-color: var(--blue-medium); box-shadow: var(--shadow-lg); }
-.float-textbox:focus-within { border-color: var(--blue-medium); box-shadow: 0 4px 20px rgba(26,86,219,0.15); }
+.float-textbox:hover { border-color: rgba(255,255,255,0.3); box-shadow: var(--shadow-lg); }
+.float-textbox:focus-within { border-color: var(--blue-active); box-shadow: 0 4px 20px rgba(37,99,235,0.25); }
 
 .float-tbar {
   display: flex;
   align-items: center;
   gap: 3px;
   padding: 4px 6px;
-  background: var(--surface-soft);
-  border-bottom: 1px solid var(--hairline);
+  background: rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.12);
   cursor: grab;
   user-select: none;
   flex-shrink: 0;
@@ -1280,7 +1280,7 @@ html, body {
 .float-tbar-close {
   font-size: 18px;
   font-weight: 700;
-  color: var(--mute);
+  color: rgba(255,255,255,0.6);
   cursor: pointer;
   padding: 0 6px;
   line-height: 1;
@@ -1292,33 +1292,33 @@ html, body {
   font-size: 11px;
   font-weight: 600;
   padding: 2px 7px;
-  border: 1px solid var(--hairline);
+  border: 1px solid rgba(255,255,255,0.2);
   border-radius: var(--radius-sm);
-  background: var(--surface-card);
-  color: var(--body);
+  background: transparent;
+  color: rgba(255,255,255,0.8);
   cursor: pointer;
   line-height: 1.5;
   white-space: nowrap;
 }
-.fb-fmt:hover { background: var(--blue-light); border-color: var(--blue-medium); color: var(--blue-medium); }
-.fb-sep { width: 1px; height: 18px; background: var(--hairline); flex-shrink: 0; }
+.fb-fmt:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.4); color: #fff; }
+.fb-sep { width: 1px; height: 18px; background: rgba(255,255,255,0.15); flex-shrink: 0; }
 .fb-color-label {
   position: relative;
   display: inline-flex;
   align-items: center;
   cursor: pointer;
   padding: 1px;
-  border: 1px solid var(--hairline);
+  border: 1px solid rgba(255,255,255,0.2);
   border-radius: var(--radius-sm);
-  background: var(--surface-card);
+  background: transparent;
 }
-.fb-color-label:hover { border-color: var(--blue-medium); }
+.fb-color-label:hover { border-color: rgba(255,255,255,0.4); }
 .fb-csw {
   display: inline-block;
   width: 16px;
   height: 12px;
   border-radius: 2px;
-  border: 1px solid rgba(0,0,0,0.12);
+  border: 1px solid rgba(0,0,0,0.2);
 }
 .fb-cpick, .fb-bgpick {
   position: absolute;
@@ -1332,25 +1332,26 @@ html, body {
   font-size: 13px;
   font-weight: 700;
   padding: 1px 8px;
-  border: 1px solid var(--hairline);
+  border: 1px solid rgba(255,255,255,0.2);
   border-radius: var(--radius-sm);
-  background: var(--surface-card);
-  color: var(--body);
+  background: transparent;
+  color: rgba(255,255,255,0.8);
   cursor: pointer;
   line-height: 1.5;
 }
-.fb-font-btn:hover { background: var(--blue-light); border-color: var(--blue-medium); color: var(--blue-medium); }
+.fb-font-btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.4); color: #fff; }
 .fb-font-sel {
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 10px;
   padding: 2px 4px;
-  border: 1px solid var(--hairline);
+  border: 1px solid rgba(255,255,255,0.2);
   border-radius: var(--radius-sm);
-  background: var(--surface-card);
-  color: var(--body);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
   cursor: pointer;
   max-width: 70px;
 }
+.fb-font-sel option { background: var(--blue-deep); color: #fff; }
 
 .float-body {
   flex: 1;
@@ -1358,7 +1359,7 @@ html, body {
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--ink);
+  color: #fff;
   outline: none;
   overflow: auto;
   min-height: 50px;
