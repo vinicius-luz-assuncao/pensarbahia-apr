@@ -1,0 +1,490 @@
+﻿{
+    "type":  "FeatureCollection",
+    "features":  [
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "type":  "Point",
+                                          "coordinates":  [
+                                                              -38.420772,
+                                                              -12.133526
+                                                          ]
+                                      },
+                         "properties":  {
+                                            "osm_type":  "R",
+                                            "osm_id":  362337,
+                                            "osm_key":  "place",
+                                            "osm_value":  "municipality",
+                                            "type":  "city",
+                                            "name":  "Alagoinhas",
+                                            "state":  "Bahia",
+                                            "country":  "Brazil",
+                                            "countrycode":  "BR",
+                                            "extent":  [
+                                                           -38.5866603,
+                                                           -11.9274241,
+                                                           -38.2730441,
+                                                           -12.285182
+                                                       ]
+                                        },
+                         "id":  "bGUAx"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "type":  "Point",
+                                          "coordinates":  [
+                                                              -39.6974476,
+                                                              -12.7073174
+                                                          ]
+                                      },
+                         "properties":  {
+                                            "osm_type":  "R",
+                                            "osm_id":  362258,
+                                            "osm_key":  "place",
+                                            "osm_value":  "municipality",
+                                            "type":  "city",
+                                            "name":  "Itatim",
+                                            "state":  "Bahia",
+                                            "country":  "Brazil",
+                                            "countrycode":  "BR",
+                                            "extent":  [
+                                                           -39.8556988,
+                                                           -12.5484789,
+                                                           -39.6343805,
+                                                           -12.8872204
+                                                       ]
+                                        },
+                         "id":  "XEsc3"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "type":  "Point",
+                                          "coordinates":  [
+                                                              -41.6592397,
+                                                              -14.2950215
+                                                          ]
+                                      },
+                         "properties":  {
+                                            "osm_type":  "R",
+                                            "osm_id":  6402358,
+                                            "osm_key":  "place",
+                                            "osm_value":  "district",
+                                            "type":  "district",
+                                            "name":  "Brumado",
+                                            "city":  "Brumado",
+                                            "state":  "Bahia",
+                                            "country":  "Brazil",
+                                            "countrycode":  "BR",
+                                            "extent":  [
+                                                           -41.9094833,
+                                                           -14.0804117,
+                                                           -41.4430127,
+                                                           -14.5091999
+                                                       ]
+                                        },
+                         "id":  "6cJhC"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "type":  "Point",
+                                          "coordinates":  [
+                                                              -39.4284444,
+                                                              -12.7617572
+                                                          ]
+                                      },
+                         "properties":  {
+                                            "osm_type":  "R",
+                                            "osm_id":  362306,
+                                            "osm_key":  "place",
+                                            "osm_value":  "municipality",
+                                            "type":  "city",
+                                            "name":  "Castro Alves",
+                                            "state":  "Bahia",
+                                            "country":  "Brazil",
+                                            "postcode":  "45500-000",
+                                            "countrycode":  "BR",
+                                            "extent":  [
+                                                           -39.505,
+                                                           -12.5484767,
+                                                           -39.2259325,
+                                                           -12.9016392
+                                                       ]
+                                        },
+                         "id":  "GN20G"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "type":  "Point",
+                                          "coordinates":  [
+                                                              -38.9181807,
+                                                              -12.7782981
+                                                          ]
+                                      },
+                         "properties":  {
+                                            "osm_type":  "R",
+                                            "osm_id":  362336,
+                                            "osm_key":  "place",
+                                            "osm_value":  "municipality",
+                                            "type":  "city",
+                                            "name":  "Maragogipe",
+                                            "state":  "Bahia",
+                                            "country":  "Brazil",
+                                            "postcode":  "44420-000",
+                                            "countrycode":  "BR",
+                                            "extent":  [
+                                                           -39.0752003,
+                                                           -12.6950764,
+                                                           -38.8008411,
+                                                           -12.9559744
+                                                       ]
+                                        },
+                         "id":  "eaCnP"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "type":  "Point",
+                                          "coordinates":  [
+                                                              -38.4903857,
+                                                              -12.7926188
+                                                          ]
+                                      },
+                         "properties":  {
+                                            "osm_type":  "N",
+                                            "osm_id":  1181489936,
+                                            "osm_key":  "man_made",
+                                            "osm_value":  "lighthouse",
+                                            "type":  "house",
+                                            "name":  "Aratu",
+                                            "street":  "Estrada da Base Naval de Aratu",
+                                            "district":  "Quilombo do Alto do Tororó",
+                                            "city":  "Salvador",
+                                            "state":  "Bahia",
+                                            "country":  "Brazil",
+                                            "postcode":  "40800-272",
+                                            "countrycode":  "BR",
+                                            "_umap_options":  {
+                                                                  "color":  "Red",
+                                                                  "iconSize":  28
+                                                              }
+                                        },
+                         "id":  "xKqOm"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "coordinates":  [
+                                                              [
+                                                                  -38.417816,
+                                                                  -12.138485
+                                                              ],
+                                                              [
+                                                                  -38.435669,
+                                                                  -12.146542
+                                                              ],
+                                                              [
+                                                                  -38.482361,
+                                                                  -12.137142
+                                                              ],
+                                                              [
+                                                                  -38.537292,
+                                                                  -12.133113
+                                                              ],
+                                                              [
+                                                                  -38.589478,
+                                                                  -12.153257
+                                                              ]
+                                                          ],
+                                          "type":  "LineString"
+                                      },
+                         "properties":  {
+
+                                        },
+                         "id":  "eymf1"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "coordinates":  [
+                                                              [
+                                                                  -38.593597,
+                                                                  -12.153257
+                                                              ],
+                                                              [
+                                                                  -38.633423,
+                                                                  -12.189512
+                                                              ],
+                                                              [
+                                                                  -38.647156,
+                                                                  -12.22442
+                                                              ],
+                                                              [
+                                                                  -38.721313,
+                                                                  -12.259323
+                                                              ],
+                                                              [
+                                                                  -38.765259,
+                                                                  -12.2808
+                                                              ],
+                                                              [
+                                                                  -38.774872,
+                                                                  -12.321064
+                                                              ],
+                                                              [
+                                                                  -38.884735,
+                                                                  -12.3318
+                                                              ],
+                                                              [
+                                                                  -38.924561,
+                                                                  -12.394865
+                                                              ],
+                                                              [
+                                                                  -38.990479,
+                                                                  -12.486081
+                                                              ],
+                                                              [
+                                                                  -39.017944,
+                                                                  -12.575924
+                                                              ],
+                                                              [
+                                                                  -39.108582,
+                                                                  -12.58799
+                                                              ],
+                                                              [
+                                                                  -39.259644,
+                                                                  -12.594694
+                                                              ],
+                                                              [
+                                                                  -39.418945,
+                                                                  -12.613461
+                                                              ]
+                                                          ],
+                                          "type":  "LineString"
+                                      },
+                         "properties":  {
+
+                                        },
+                         "id":  "P6xA1"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "coordinates":  [
+                                                              [
+                                                                  -39.420319,
+                                                                  -12.612107
+                                                              ],
+                                                              [
+                                                                  -39.70047,
+                                                                  -12.700566
+                                                              ]
+                                                          ],
+                                          "type":  "LineString"
+                                      },
+                         "properties":  {
+
+                                        },
+                         "id":  "ujoXL"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "coordinates":  [
+                                                              [
+                                                                  -39.70047,
+                                                                  -12.700566
+                                                              ],
+                                                              [
+                                                                  -39.585114,
+                                                                  -12.743444
+                                                              ],
+                                                              [
+                                                                  -39.513702,
+                                                                  -12.763541
+                                                              ],
+                                                              [
+                                                                  -39.425812,
+                                                                  -12.762201
+                                                              ]
+                                                          ],
+                                          "type":  "LineString"
+                                      },
+                         "properties":  {
+
+                                        },
+                         "id":  "bixrh"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "coordinates":  [
+                                                              [
+                                                                  -39.438171,
+                                                                  -12.762252
+                                                              ],
+                                                              [
+                                                                  -39.328308,
+                                                                  -12.747463
+                                                              ],
+                                                              [
+                                                                  -39.261017,
+                                                                  -12.732725
+                                                              ],
+                                                              [
+                                                                  -39.219818,
+                                                                  -12.719382
+                                                              ],
+                                                              [
+                                                                  -39.169006,
+                                                                  -12.715362
+                                                              ],
+                                                              [
+                                                                  -39.064636,
+                                                                  -12.747463
+                                                              ],
+                                                              [
+                                                                  -38.917694,
+                                                                  -12.779617
+                                                              ]
+                                                          ],
+                                          "type":  "LineString"
+                                      },
+                         "properties":  {
+
+                                        },
+                         "id":  "V260z"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "coordinates":  [
+                                                              [
+                                                                  -39.699097,
+                                                                  -12.70192
+                                                              ],
+                                                              [
+                                                                  -39.885864,
+                                                                  -12.7314
+                                                              ],
+                                                              [
+                                                                  -40.001221,
+                                                                  -12.902848
+                                                              ],
+                                                              [
+                                                                  -40.144043,
+                                                                  -13.023327
+                                                              ],
+                                                              [
+                                                                  -40.413208,
+                                                                  -13.218647
+                                                              ],
+                                                              [
+                                                                  -40.509338,
+                                                                  -13.373721
+                                                              ],
+                                                              [
+                                                                  -40.575256,
+                                                                  -13.504654
+                                                              ],
+                                                              [
+                                                                  -40.825195,
+                                                                  -13.611485
+                                                              ],
+                                                              [
+                                                                  -40.968018,
+                                                                  -13.688907
+                                                              ],
+                                                              [
+                                                                  -41.069641,
+                                                                  -13.73695
+                                                              ],
+                                                              [
+                                                                  -41.105347,
+                                                                  -13.85968
+                                                              ],
+                                                              [
+                                                                  -41.160278,
+                                                                  -13.977014
+                                                              ],
+                                                              [
+                                                                  -41.21521,
+                                                                  -14.102281
+                                                              ],
+                                                              [
+                                                                  -41.289368,
+                                                                  -14.131589
+                                                              ],
+                                                              [
+                                                                  -41.5448,
+                                                                  -14.136918
+                                                              ],
+                                                              [
+                                                                  -41.665649,
+                                                                  -14.283398
+                                                              ]
+                                                          ],
+                                          "type":  "LineString"
+                                      },
+                         "properties":  {
+
+                                        },
+                         "id":  "2rFE7"
+                     },
+                     {
+                         "type":  "Feature",
+                         "geometry":  {
+                                          "coordinates":  [
+                                                              [
+                                                                  -38.879242,
+                                                                  -12.326486
+                                                              ],
+                                                              [
+                                                                  -38.838043,
+                                                                  -12.385528
+                                                              ],
+                                                              [
+                                                                  -38.818817,
+                                                                  -12.43919
+                                                              ],
+                                                              [
+                                                                  -38.796844,
+                                                                  -12.490159
+                                                              ],
+                                                              [
+                                                                  -38.741913,
+                                                                  -12.549163
+                                                              ],
+                                                              [
+                                                                  -38.675995,
+                                                                  -12.589386
+                                                              ],
+                                                              [
+                                                                  -38.60321,
+                                                                  -12.640325
+                                                              ],
+                                                              [
+                                                                  -38.524933,
+                                                                  -12.688574
+                                                              ],
+                                                              [
+                                                                  -38.460388,
+                                                                  -12.76227
+                                                              ],
+                                                              [
+                                                                  -38.489227,
+                                                                  -12.794421
+                                                              ]
+                                                          ],
+                                          "type":  "LineString"
+                                      },
+                         "properties":  {
+
+                                        },
+                         "id":  "iehS6"
+                     }
+                 ]
+}

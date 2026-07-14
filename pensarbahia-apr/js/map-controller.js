@@ -301,7 +301,7 @@ function loadBTS(lc) {
                 var el = this.getElement();
                 if (el) { var sp = el.querySelector('span'); if (sp) sp.style.transform = 'rotate(' + deg + 'deg)'; }
               };
-              label.on('dragend', function() { routeLabelStore.dirty = true; });
+              label.on('dragend', function() { saveRouteLabels(); });
               label.on('add', function() {
                 var el = this.getElement();
                 if (el) { var sp = el.querySelector('span'); if (sp) sp.style.transform = 'rotate(' + this._rot + 'deg)'; }
@@ -707,8 +707,12 @@ function initBahiaDrag() {
   if (!container || !img) return;
 
   var dragging = false, startX, startY, startPX, startPY;
-  var imgPos = { x: 50, y: 50 };
   var maxX = 30, maxY = 30;
+  var imgPos = { x: 50, y: 50 };
+  try {
+    var saved = localStorage.getItem('pensarbahia_bahia_img_pos');
+    if (saved) { var p = JSON.parse(saved); if (p.x != null) imgPos.x = p.x; if (p.y != null) imgPos.y = p.y; }
+  } catch(e) {}
 
   function applyPosition() {
     var px = imgPos.x + '%', py = imgPos.y + '%';
@@ -736,7 +740,10 @@ function initBahiaDrag() {
     applyPosition();
   }
 
-  function onEnd() { dragging = false; }
+  function onEnd() {
+    dragging = false;
+    try { localStorage.setItem('pensarbahia_bahia_img_pos', JSON.stringify({ x: imgPos.x, y: imgPos.y })); } catch(e) {}
+  }
 
   container.addEventListener('mousedown', onStart);
   document.addEventListener('mousemove', onMove);
@@ -748,263 +755,12 @@ function initBahiaDrag() {
 }
 
 /* ============================================================
-   MTO (MAP TEXT OVERLAY) NAVIGATION
-   ============================================================ */
-var mtoStepIndex = 0;
-
-function getStepsForSlide(slideIdx) {
-  return document.querySelectorAll('.mto-step[data-slide="' + slideIdx + '"]');
-}
-
-function makeStepEditable(step) {
-  if (!step) return;
-  var highlights = step.querySelectorAll('.mto-highlight');
-  var bodies = step.querySelectorAll('.mto-body');
-  highlights.forEach(function(el) { el.contentEditable = 'true'; });
-  bodies.forEach(function(el) { el.contentEditable = 'true'; });
-}
-
-function getStepKey(slideIdx, stepIdx) {
-  return 'pensarbahia_mto_' + slideIdx + '_' + stepIdx;
-}
-
-function saveStepContent(slideIdx, stepIdx) {
-  var steps = getStepsForSlide(slideIdx);
-  if (!steps[stepIdx]) return;
-  var key = getStepKey(slideIdx, stepIdx);
-  try { localStorage.setItem(key, steps[stepIdx].innerHTML); } catch(e) {}
-  var ind = document.getElementById('mto-save-indicator');
-  if (ind) { ind.classList.add('show'); clearTimeout(ind._hide); ind._hide = setTimeout(function() { ind.classList.remove('show'); }, 2000); }
-}
-
-function restoreStepContent(slideIdx, stepIdx) {
-  var steps = getStepsForSlide(slideIdx);
-  if (!steps[stepIdx]) return;
-  var key = getStepKey(slideIdx, stepIdx);
-  try {
-    var saved = localStorage.getItem(key);
-    if (saved) steps[stepIdx].innerHTML = saved;
-  } catch(e) {}
-}
-
-function showMtoStep(slideIdx, stepIdx) {
-  var steps = getStepsForSlide(slideIdx);
-  if (!steps.length) return;
-  if (stepIdx < 0) stepIdx = 0;
-  if (stepIdx >= steps.length) stepIdx = steps.length - 1;
-  mtoStepIndex = stepIdx;
-  // Hide ALL steps from ALL slides first
-  document.querySelectorAll('.mto-step').forEach(function(s) { s.classList.remove('active'); });
-  // Show only the target step
-  if (steps[stepIdx]) steps[stepIdx].classList.add('active');
-  // Restore and make editable
-  restoreStepContent(slideIdx, stepIdx);
-  makeStepEditable(steps[stepIdx]);
-  var counter = document.getElementById('mto-counter');
-  if (counter) counter.textContent = (stepIdx + 1) + '/' + steps.length;
-  var prev = document.getElementById('mto-prev');
-  var next = document.getElementById('mto-next');
-  if (prev) prev.disabled = stepIdx === 0;
-  if (next) next.disabled = stepIdx >= steps.length - 1;
-}
-
-function initMtoNav() {
-  var overlay = document.getElementById('map-text-overlay');
-  if (!overlay) return;
-  var prev = document.getElementById('mto-prev');
-  var next = document.getElementById('mto-next');
-  if (prev) prev.addEventListener('click', function() {
-    var steps = getStepsForSlide(currentSlide);
-    if (steps[mtoStepIndex]) saveStepContent(currentSlide, mtoStepIndex);
-    mtoStepIndex = Math.max(0, mtoStepIndex - 1);
-    showMtoStep(currentSlide, mtoStepIndex);
-  });
-  if (next) next.addEventListener('click', function() {
-    var steps = getStepsForSlide(currentSlide);
-    if (steps[mtoStepIndex]) saveStepContent(currentSlide, mtoStepIndex);
-    mtoStepIndex = Math.min(steps.length - 1, mtoStepIndex + 1);
-    showMtoStep(currentSlide, mtoStepIndex);
-  });
-
-  // Add new step
-  var addStepBtn = document.getElementById('mto-add-step');
-  if (addStepBtn) {
-    addStepBtn.addEventListener('click', function() {
-      var steps = getStepsForSlide(currentSlide);
-      if (steps[mtoStepIndex]) saveStepContent(currentSlide, mtoStepIndex);
-      var newIdx = steps.length;
-      var newStep = document.createElement('div');
-      newStep.className = 'mto-step';
-      newStep.setAttribute('data-slide', currentSlide);
-      newStep.setAttribute('data-step', newIdx);
-      newStep.innerHTML = '<div class="mto-highlight">Novo t&iacute;tulo</div><div class="mto-body">Digite seu texto aqui...</div>';
-      document.getElementById('mto-steps').appendChild(newStep);
-      showMtoStep(currentSlide, newIdx);
-      saveStepContent(currentSlide, newIdx);
-    });
-  }
-
-  // Helper to save overlay rect for a given slide
-  function saveOverlayRect(slideIdx) {
-    try {
-      var rect = { left: overlay.offsetLeft, top: overlay.offsetTop, width: overlay.offsetWidth, height: overlay.offsetHeight };
-      localStorage.setItem('pensarbahia_overlay_rect_' + slideIdx, JSON.stringify(rect));
-    } catch(e) {}
-  }
-
-  // Helper to restore overlay rect for a given slide
-  function restoreOverlayRect(slideIdx) {
-    try {
-      var saved = localStorage.getItem('pensarbahia_overlay_rect_' + slideIdx);
-      var r;
-      if (saved) {
-        r = JSON.parse(saved);
-      } else {
-        r = { left: 32, top: 32 };
-        localStorage.setItem('pensarbahia_overlay_rect_' + slideIdx, JSON.stringify(r));
-      }
-      if (r.left) overlay.style.left = r.left + 'px';
-      if (r.top) overlay.style.top = r.top + 'px';
-      if (r.width) overlay.style.width = r.width + 'px';
-      if (r.height) overlay.style.height = r.height + 'px';
-    } catch(e) {}
-  }
-
-  // Restore saved position for initial slide
-  restoreOverlayRect(currentSlide);
-
-  // Dragging (exclude editable text and resize handle)
-  var dragging = false, startX, startY, origX, origY;
-  overlay.addEventListener('mousedown', function(e) {
-    if (e.target.closest('.mto-nav')) return;
-    if (e.target.closest('[contenteditable=true]')) return;
-    if (e.offsetX > overlay.offsetWidth - 20 && e.offsetY > overlay.offsetHeight - 20) return;
-    dragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    origX = overlay.offsetLeft;
-    origY = overlay.offsetTop;
-    overlay.style.cursor = 'grabbing';
-    e.preventDefault();
-  });
-  document.addEventListener('mousemove', function(e) {
-    if (!dragging) return;
-    overlay.style.left = (origX + e.clientX - startX) + 'px';
-    overlay.style.top = (origY + e.clientY - startY) + 'px';
-  });
-  document.addEventListener('mouseup', function() {
-    if (!dragging) return;
-    dragging = false;
-    overlay.style.cursor = '';
-    saveOverlayRect(currentSlide);
-  });
-  
-  // Font size controls
-  var overlayEl = document.querySelector('.map-text-overlay');
-  var fontSizeKey = 'pensarbahia_font_size';
-  var savedFs = parseFloat(localStorage.getItem(fontSizeKey)) || 16;
-  var bodyEl = overlayEl ? overlayEl.querySelector('.mto-body') : null;
-  var highlightEl = overlayEl ? overlayEl.querySelector('.mto-highlight') : null;
-  function applyFontSize(size) {
-    if (bodyEl) bodyEl.style.fontSize = size + 'px';
-    if (highlightEl) highlightEl.style.fontSize = (size + 2) + 'px';
-    localStorage.setItem(fontSizeKey, size);
-  }
-  applyFontSize(savedFs);
-  var incBtn = document.getElementById('mto-font-inc');
-  var decBtn = document.getElementById('mto-font-dec');
-  if (incBtn) incBtn.addEventListener('click', function(e) { e.stopPropagation(); var cur = parseFloat(localStorage.getItem(fontSizeKey)) || 16; applyFontSize(Math.min(32, cur + 2)); focusEditable(); });
-  if (decBtn) decBtn.addEventListener('click', function(e) { e.stopPropagation(); var cur = parseFloat(localStorage.getItem(fontSizeKey)) || 16; applyFontSize(Math.max(10, cur - 2)); focusEditable(); });
-
-  // Helper to restore focus to the active editable area after toolbar click
-  function focusEditable() {
-    var el = overlay.querySelector('.mto-step.active [contenteditable=true]');
-    if (el) el.focus();
-  }
-
-  // Format buttons (B, I, U, S, alignment, lists)
-  document.querySelectorAll('.mto-fmt-btn').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      var cmd = btn.dataset.cmd;
-      document.execCommand(cmd, false, null);
-      focusEditable();
-    });
-  });
-
-  // Text color picker
-  var colorPicker = document.getElementById('mto-color-picker');
-  var colorSwatch = document.getElementById('mto-color-swatch');
-  if (colorPicker) {
-    colorPicker.addEventListener('input', function(e) {
-      e.stopPropagation();
-      colorSwatch.style.background = colorPicker.value;
-      document.execCommand('foreColor', false, colorPicker.value);
-      focusEditable();
-    });
-  }
-
-  // Background color picker
-  var bgPicker = document.getElementById('mto-bg-picker');
-  var bgSwatch = document.getElementById('mto-bg-swatch');
-  if (bgPicker) {
-    bgPicker.addEventListener('input', function(e) {
-      e.stopPropagation();
-      bgSwatch.style.background = bgPicker.value;
-      document.execCommand('hiliteColor', false, bgPicker.value);
-      focusEditable();
-    });
-  }
-
-  // Font family selector
-  var fontSelect = document.getElementById('mto-font-select');
-  if (fontSelect) {
-    fontSelect.addEventListener('change', function(e) {
-      e.stopPropagation();
-      var val = fontSelect.value;
-      if (val) {
-        document.execCommand('fontName', false, val);
-        fontSelect.value = '';
-        focusEditable();
-      }
-    });
-  }
-
-  // Save indicator
-  var saveIndicator = document.getElementById('mto-save-indicator');
-  function showSaved() {
-    if (saveIndicator) {
-      saveIndicator.classList.add('show');
-      clearTimeout(saveIndicator._hide);
-      saveIndicator._hide = setTimeout(function() { saveIndicator.classList.remove('show'); }, 2000);
-    }
-  }
-
-  // Save content on input (debounced)
-  var saveTimer = null;
-  overlay.addEventListener('input', function(e) {
-    if (e.target.closest('.mto-step')) {
-      clearTimeout(saveTimer);
-      saveTimer = setTimeout(function() {
-        saveStepContent(currentSlide, mtoStepIndex);
-        showSaved();
-      }, 500);
-    }
-  });
-
-  // Restore current step content on init
-  restoreStepContent(currentSlide, mtoStepIndex);
-  var activeStep = document.querySelector('.mto-step.active');
-  if (activeStep) makeStepEditable(activeStep);
-}
-
-/* ============================================================
    PAGE / SLIDE SYSTEM
    ============================================================ */
 const PAGE_LAYER_MAP = {
   0: ['int_brasil', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul', 'route_fico', 'int_cidades', 'int_bahia'],
   1: [],
-   2: ['mac_mancha', 'mac_cidades', 'mac_vias'],
+    2: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias'],
   3: ['bts_ferrovias', 'bts_rodovias', 'bts_circulo_fixo']
 };
 
@@ -1062,9 +818,8 @@ var currentSlide = 0;
 
 function switchSlide(index) {
   if (index === currentSlide) return;
-
-  // Save current MTO step content before switching
-  saveStepContent(currentSlide, mtoStepIndex);
+  // Save current map view before switching
+  saveCurrentMapView();
 
   document.querySelectorAll('.slide-tab').forEach(function(tab) {
     tab.classList.toggle('active', parseInt(tab.dataset.slide) === index);
@@ -1079,10 +834,6 @@ function switchSlide(index) {
   // Bahia fullscreen image toggle
   var bahiaFS = document.getElementById('bahia-fullscreen');
   if (bahiaFS) bahiaFS.classList.toggle('active', index === 2);
-
-  // MTO overlay toggle
-  var mto = document.getElementById('map-text-overlay');
-  if (mto) mto.classList.toggle('active', index >= 1 && index <= 4);
 
   // Desativar camadas da página anterior
   var slideToPage = {0: 0, 1: 0, 2: 1, 3: 2, 4: 3};
@@ -1114,59 +865,34 @@ function switchSlide(index) {
   var editBtn = document.getElementById('edit-mancha-btn');
   if (editBtn) editBtn.style.display = (index === 3) ? '' : 'none';
 
-  // Save/restore floating text boxes per slide
-  saveFloatBoxes(currentSlide);
-  document.querySelectorAll('.float-textbox').forEach(function(b) { b.remove(); });
-  if (index >= 1 && index <= 4) restoreFloatBoxes(index);
-
   // Save/restore video overlays per slide
+  syncVideoOverlayState(currentSlide);
   saveVideoOverlays(currentSlide);
   document.querySelectorAll('.video-overlay').forEach(function(v) { v.remove(); });
+  // Save Bahia image position when leaving slide 2
+  if (currentSlide === 2) {
+    var container = document.getElementById('bahia-drag-container');
+    if (container) {
+      var img = document.getElementById('bahia-drag-img');
+      if (img) {
+        var op = img.style.objectPosition || container.style.getPropertyValue('--bahia-img-pos');
+        if (op) { try { localStorage.setItem('pensarbahia_bahia_img_pos', JSON.stringify({ x: parseFloat(op) || 50, y: parseFloat(op.split(' ')[1]) || 50 })); } catch(e) {} }
+      }
+    }
+  }
   if (index >= 1 && index <= 4) restoreVideoOverlays(index);
 
-  // Save current overlay rect before switching, restore new slide's rect
-  if (mto) {
-    try {
-      if (mto.classList.contains('active')) {
-        var curRect = { left: mto.offsetLeft, top: mto.offsetTop, width: mto.offsetWidth, height: mto.offsetHeight };
-        localStorage.setItem('pensarbahia_overlay_rect_' + currentSlide, JSON.stringify(curRect));
-      }
-    } catch(e) {}
-    // Restore new slide's rect
-    try {
-      var saved = localStorage.getItem('pensarbahia_overlay_rect_' + index);
-      var r;
-      if (saved) {
-        r = JSON.parse(saved);
-      } else {
-        r = { left: 32, top: 32 };
-        localStorage.setItem('pensarbahia_overlay_rect_' + index, JSON.stringify(r));
-      }
-      if (r.left) mto.style.left = r.left + 'px';
-      if (r.top) mto.style.top = r.top + 'px';
-      if (r.width) mto.style.width = r.width + 'px';
-      if (r.height) mto.style.height = r.height + 'px';
-    } catch(e) {}
-  }
-
   currentSlide = index;
-
-  // Show first MTO step for this slide
-  setTimeout(function() {
-    showMtoStep(index, 0);
-  }, 50);
 
   if (!mapInstance) return;
   if (index >= 1) {
     toggleGallery(false);
-    if (index === 1) {
-      var savedView = null;
-      try { var v = localStorage.getItem('pensarbahia_slide1_view'); if (v) savedView = JSON.parse(v); } catch(e) {}
-      if (savedView) {
-        mapInstance.setView(savedView.center, savedView.zoom, { duration: 2 });
-      } else {
-        mapInstance.flyTo([-15.0, -60.0], 4, { duration: 2 });
-      }
+    var savedView = null;
+    try { var v = localStorage.getItem('pensarbahia_slide' + index + '_view'); if (v) savedView = JSON.parse(v); } catch(e) {}
+    if (savedView) {
+      mapInstance.setView(savedView.center, savedView.zoom, { duration: 2 });
+    } else if (index === 1) {
+      mapInstance.flyTo([-15.0, -60.0], 4, { duration: 2 });
     } else if (index === 2) {
       mapInstance.flyTo([-12.75689, -39.36401], 8, { duration: 2 });
     } else if (index === 3) {
@@ -1176,6 +902,15 @@ function switchSlide(index) {
     }
     setTimeout(function() { mapInstance.invalidateSize(); }, 200);
   }
+}
+
+function saveCurrentMapView() {
+  if (!mapInstance || currentSlide < 1 || currentSlide > 4) return;
+  var c = mapInstance.getCenter();
+  var z = mapInstance.getZoom();
+  try {
+    localStorage.setItem('pensarbahia_slide' + currentSlide + '_view', JSON.stringify({ center: [c.lat, c.lng], zoom: z }));
+  } catch(e) {}
 }
 
 function toggleAllLayers(pageIndex) {
@@ -1231,18 +966,45 @@ function toggleGallery(open) {
   if (btn) btn.textContent = isOpen ? 'Fechar Galeria de Imagens' : 'Abrir Galeria de Imagens';
 }
 
+/* Gallery state save/restore */
+function saveGalleryState() {
+  var overlay = document.getElementById('gallery-overlay');
+  if (!overlay) return;
+  try {
+    localStorage.setItem('pensarbahia_gallery_state', JSON.stringify({
+      left: overlay.style.left || '',
+      top: overlay.style.top || '',
+      width: overlay.style.width || overlay.offsetWidth,
+      height: overlay.style.height || overlay.offsetHeight
+    }));
+  } catch(e) {}
+}
+
+function restoreGalleryState() {
+  var overlay = document.getElementById('gallery-overlay');
+  if (!overlay) return;
+  try {
+    var saved = localStorage.getItem('pensarbahia_gallery_state');
+    if (saved) {
+      var s = JSON.parse(saved);
+      if (s.left) overlay.style.left = s.left;
+      if (s.top) overlay.style.top = s.top;
+      if (s.width) overlay.style.width = (typeof s.width === 'number' ? s.width + 'px' : s.width);
+      if (s.height) overlay.style.height = (typeof s.height === 'number' ? s.height + 'px' : s.height);
+    }
+  } catch(e) {}
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   initMap();
   buildPageLayers();
   buildGallery();
   initBahiaDrag();
-  initMtoNav();
-
-  // MTO starts visible on slides 1-4
-  var mto = document.getElementById('map-text-overlay');
-  if (mto && currentSlide >= 1 && currentSlide <= 4) mto.classList.add('active');
-  // Initial float box restore (for slide 1 which is first navigable)
-  restoreFloatBoxes(1);
+  restoreGalleryState();
+  (function() {
+    var g = document.getElementById('gallery-overlay');
+    if (g) g.addEventListener('mouseup', function() { setTimeout(saveGalleryState, 50); });
+  })();
 
   document.querySelector('.slide-tabs').addEventListener('click', function(e) {
     var tab = e.target.closest('.slide-tab');
@@ -1284,9 +1046,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   document.getElementById('gallery-open-btn').addEventListener('click', function() { toggleGallery(); });
-
-  document.getElementById('gallery-close').addEventListener('click', function() { toggleGallery(false); });
-
   document.getElementById('sidebar-toggle').addEventListener('click', function() { toggleSidebar(); });
   document.getElementById('sidebar-close').addEventListener('click', function() { toggleSidebar(false); });
   document.getElementById('sidebar-overlay').addEventListener('click', function() { toggleSidebar(false); });
@@ -1294,23 +1053,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('image-viewer').style.display = 'none';
   });
   setupImageViewerDrag();
-
-  document.getElementById('toggle-text-btn').addEventListener('click', function() {
-    var mto = document.getElementById('map-text-overlay');
-    if (mto) mto.classList.toggle('mto-hidden');
-  });
-
-  document.getElementById('add-textbox-btn').addEventListener('click', function() {
-    if (currentSlide >= 1 && currentSlide <= 4) {
-      createFloatBox(currentSlide, {});
-    }
-  });
-
-  document.getElementById('add-video-btn').addEventListener('click', function() {
-    if (currentSlide >= 1 && currentSlide <= 4) {
-      createVideoOverlay(currentSlide, {});
-    }
-  });
 
   document.getElementById('layer-controls').addEventListener('click', function(e) {
     var subArrow = e.target.closest('.sub-arrow');
@@ -1344,19 +1086,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Ctrl+Shift+S: save slide 1 view
+  // Ctrl+Shift+S: save current slide video position
   document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && e.shiftKey && e.key === 'S') {
       e.preventDefault();
-      if (mapInstance && currentSlide === 1) {
-        var c = mapInstance.getCenter();
-        var z = mapInstance.getZoom();
-        try {
-          localStorage.setItem('pensarbahia_slide1_view', JSON.stringify({ center: [c.lat, c.lng], zoom: z }));
-          alert('Zoom e centro do slide 1 salvos!');
-        } catch(err) {}
-      } else {
-        alert('Va para o slide 1 e ajuste o zoom primeiro.');
+      if (currentSlide >= 1 && currentSlide <= 4) {
+        syncVideoOverlayState(currentSlide);
+        saveVideoOverlays(currentSlide);
+        var msg = document.createElement('div');
+        msg.textContent = 'Posicao do video (slide ' + currentSlide + ') salva!';
+        msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a3a5c;color:#fff;padding:8px 20px;border-radius:6px;z-index:10000;font-family:IBM Plex Sans,sans-serif;font-size:13px;';
+        document.body.appendChild(msg);
+        setTimeout(function() { msg.remove(); }, 2500);
       }
     }
   });
@@ -1504,312 +1245,50 @@ initMap = function() {
   if (mapInstance) mapInstance.on('click', deselectRouteLabel);
 };
 
-/* ============================================================
-   FLOATING TEXT BOX SYSTEM (multiple per slide)
-   ============================================================ */
-var floatBoxes = {};
-
-function saveFloatBoxes(slideIdx) {
-  try { localStorage.setItem('pensarbahia_float_boxes_' + slideIdx, JSON.stringify(floatBoxes[slideIdx] || [])); } catch(e) {}
-}
-
-function focusFloatBody(box) {
-  var body = box.querySelector('.float-body');
-  if (body) body.focus();
-}
-
-function createFloatBox(slideIdx, data) {
-  var wrapper = document.querySelector('.map-container-wrapper');
-  if (!wrapper) return null;
-  var id = data && data.id ? data.id : 'fb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
-
-  var box = document.createElement('div');
-  box.className = 'float-textbox';
-  box.dataset.fbid = id;
-  box.style.left = (data && data.left != null ? data.left : 120) + 'px';
-  box.style.top = (data && data.top != null ? data.top : 120) + 'px';
-  if (data && data.width) box.style.width = data.width + 'px';
-  if (data && data.height) box.style.height = data.height + 'px';
-
-  // --- Toolbar ---
-  var tbar = document.createElement('div');
-  tbar.className = 'float-tbar';
-  tbar.innerHTML =
-    '<span class="float-tbar-close" title="Remover">&times;</span>' +
-    '<button class="fb-fmt" data-cmd="bold" title="Negrito"><b>B</b></button>' +
-    '<button class="fb-fmt" data-cmd="italic" title="It&aacute;lico"><i>I</i></button>' +
-    '<button class="fb-fmt" data-cmd="underline" title="Sublinhado"><u>U</u></button>' +
-    '<button class="fb-fmt" data-cmd="strikeThrough" title="Riscado"><s>S</s></button>' +
-    '<span class="fb-sep"></span>' +
-    '<label class="fb-color-label" title="Cor do texto"><span class="fb-csw" style="background:#000"></span><input type="color" class="fb-cpick" value="#000000"></label>' +
-    '<label class="fb-color-label" title="Cor de fundo"><span class="fb-csw" style="background:#ffff00"></span><input type="color" class="fb-bgpick" value="#ffff00"></label>' +
-    '<span class="fb-sep"></span>' +
-    '<button class="fb-fmt" data-cmd="justifyLeft" title="Esquerda">&#x2261;&#x2190;</button>' +
-    '<button class="fb-fmt" data-cmd="justifyCenter" title="Centro">&#x2261;</button>' +
-    '<button class="fb-fmt" data-cmd="justifyRight" title="Direita">&#x2192;&#x2261;</button>' +
-    '<span class="fb-sep"></span>' +
-    '<button class="fb-fmt" data-cmd="insertUnorderedList" title="Lista">&bull;</button>' +
-    '<button class="fb-fmt" data-cmd="insertOrderedList" title="Lista num.">1.</button>' +
-    '<span class="fb-sep"></span>' +
-    '<button class="fb-font-btn" data-fb-size="dec" title="Diminuir">A-</button>' +
-    '<button class="fb-font-btn" data-fb-size="inc" title="Aumentar">A+</button>' +
-    '<span class="fb-sep"></span>' +
-    '<select class="fb-font-sel" title="Fonte">' +
-      '<option value="">Fonte</option>' +
-      '<option value="Arial,sans-serif">Arial</option>' +
-      '<option value="\'IBM Plex Sans\',sans-serif">IBM Plex</option>' +
-      '<option value="\'Times New Roman\',serif">Times</option>' +
-      '<option value="Courier New,monospace">Courier</option>' +
-      '<option value="Georgia,serif">Georgia</option>' +
-      '<option value="Verdana,sans-serif">Verdana</option>' +
-    '</select>';
-  box.appendChild(tbar);
-
-  // --- Body ---
-  var body = document.createElement('div');
-  body.className = 'float-body';
-  body.contentEditable = 'true';
-  body.innerHTML = data && data.html ? data.html : 'Digite seu texto aqui...';
-  if (data && data.fontSize) body.style.fontSize = data.fontSize + 'px';
-  box.appendChild(body);
-
-  wrapper.appendChild(box);
-
-  // --- Events ---
-  var fs = parseFloat(data && data.fontSize) || 16;
-
-  // Close
-  tbar.querySelector('.float-tbar-close').addEventListener('click', function(e) {
-    e.stopPropagation();
-    removeFloatBox(slideIdx, id);
-  });
-
-  // Format buttons
-  tbar.querySelectorAll('.fb-fmt').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      document.execCommand(btn.dataset.cmd, false, null);
-      focusFloatBody(box);
-    });
-  });
-
-  // Color pickers
-  var cpick = tbar.querySelector('.fb-cpick');
-  var bgpick = tbar.querySelector('.fb-bgpick');
-  if (cpick) cpick.addEventListener('input', function(e) {
-    e.stopPropagation();
-    cpick.parentNode.querySelector('.fb-csw').style.background = cpick.value;
-    document.execCommand('foreColor', false, cpick.value);
-    focusFloatBody(box);
-  });
-  if (bgpick) bgpick.addEventListener('input', function(e) {
-    e.stopPropagation();
-    bgpick.parentNode.querySelector('.fb-csw').style.background = bgpick.value;
-    document.execCommand('hiliteColor', false, bgpick.value);
-    focusFloatBody(box);
-  });
-
-  // Font size
-  tbar.querySelectorAll('[data-fb-size]').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      fs = Math.max(10, Math.min(48, fs + (btn.dataset.fbSize === 'inc' ? 2 : -2)));
-      body.style.fontSize = fs + 'px';
-      focusFloatBody(box);
-    });
-  });
-
-  // Font family
-  var fsel = tbar.querySelector('.fb-font-sel');
-  if (fsel) fsel.addEventListener('change', function(e) {
-    e.stopPropagation();
-    if (fsel.value) { document.execCommand('fontName', false, fsel.value); fsel.value = ''; }
-    focusFloatBody(box);
-  });
-
-  // Drag via toolbar
-  var dragging = false, startX, startY, origX, origY;
-  tbar.addEventListener('mousedown', function(e) {
-    if (e.target.closest('button') || e.target.closest('select') || e.target.closest('label') || e.target.closest('.float-tbar-close')) return;
-    dragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    origX = box.offsetLeft;
-    origY = box.offsetTop;
-    box.style.cursor = 'grabbing';
-    e.preventDefault();
-  });
-  document.addEventListener('mousemove', function(e) {
-    if (!dragging) return;
-    box.style.left = (origX + e.clientX - startX) + 'px';
-    box.style.top = (origY + e.clientY - startY) + 'px';
-  });
-  document.addEventListener('mouseup', function() {
-    if (!dragging) return;
-    dragging = false;
-    box.style.cursor = '';
-    saveFloatBoxMeta(slideIdx, id);
-  });
-
-  // Auto-save content on input
-  body.addEventListener('input', function() {
-    if (!floatBoxes[slideIdx]) floatBoxes[slideIdx] = [];
-    var entry = floatBoxes[slideIdx].find(function(b) { return b.id === id; });
-    if (entry) { entry.html = body.innerHTML; entry.fontSize = fs; }
-    saveFloatBoxes(slideIdx);
-  });
-
-  // Save meta on resize
-  box.addEventListener('mouseup', function() { saveFloatBoxMeta(slideIdx, id); });
-
-  // Focus body on click inside (except toolbar)
-  box.addEventListener('mousedown', function(e) {
-    if (!e.target.closest('.float-tbar') && !e.target.closest('.float-textbox-close')) {
-      focusFloatBody(box);
-    }
-  });
-
-  // Track
-  if (!floatBoxes[slideIdx]) floatBoxes[slideIdx] = [];
-  var existing = floatBoxes[slideIdx].find(function(b) { return b.id === id; });
-  if (!existing) {
-    floatBoxes[slideIdx].push({ id: id, left: box.offsetLeft, top: box.offsetTop, width: box.offsetWidth, height: box.offsetHeight, html: body.innerHTML, fontSize: fs });
-  }
-  saveFloatBoxes(slideIdx);
-  return box;
-}
-
-function saveFloatBoxMeta(slideIdx, id) {
-  var box = document.querySelector('.float-textbox[data-fbid="' + id + '"]');
-  if (!box) return;
-  if (!floatBoxes[slideIdx]) floatBoxes[slideIdx] = [];
-  var entry = floatBoxes[slideIdx].find(function(b) { return b.id === id; });
-  if (entry) {
-    entry.left = box.offsetLeft;
-    entry.top = box.offsetTop;
-    entry.width = box.offsetWidth;
-    entry.height = box.offsetHeight;
-  }
-  saveFloatBoxes(slideIdx);
-}
-
-function removeFloatBox(slideIdx, id) {
-  var box = document.querySelector('.float-textbox[data-fbid="' + id + '"]');
-  if (box) box.remove();
-  if (floatBoxes[slideIdx]) {
-    floatBoxes[slideIdx] = floatBoxes[slideIdx].filter(function(b) { return b.id !== id; });
-    saveFloatBoxes(slideIdx);
-  }
-}
-
-function restoreFloatBoxes(slideIdx) {
-  // Remove any existing float boxes for this slide
-  document.querySelectorAll('.float-textbox').forEach(function(b) { b.remove(); });
-  try {
-    var saved = localStorage.getItem('pensarbahia_float_boxes_' + slideIdx);
-    if (saved) {
-      floatBoxes[slideIdx] = JSON.parse(saved);
-      floatBoxes[slideIdx].forEach(function(data) {
-        createFloatBox(slideIdx, data);
-      });
-    } else {
-      floatBoxes[slideIdx] = [];
-    }
-  } catch(e) { floatBoxes[slideIdx] = []; }
-}
-
-function clearFloatBoxesForSlide(slideIdx) {
-  document.querySelectorAll('.float-textbox').forEach(function(b) { b.remove(); });
-  floatBoxes[slideIdx] = [];
-  saveFloatBoxes(slideIdx);
-}
 
 /* ============================================================
    VIDEO OVERLAY SYSTEM (multiple per slide)
    ============================================================ */
-var VIDEO_FILES = ['1.mp4','2.mp4','3.mp4','4.mp4','5.mp4','6.mp4','7.mp4','8.mp4','9.mp4','10.mp4','11.mp4'];
+var SLIDE_VIDEOS = {
+  1: ['1.mp4','2.mp4'],
+  2: ['3.mp4','4.mp4','5.mp4'],
+  3: ['6.mp4','7.mp4','8.mp4'],
+  4: ['9.mp4','10.mp4','11.mp4']
+};
 var videoOverlays = {};
 
 function saveVideoOverlays(slideIdx) {
-  try { localStorage.setItem('pensarbahia_videos_' + slideIdx, JSON.stringify(videoOverlays[slideIdx] || [])); } catch(e) {}
+  try {
+    var val = JSON.stringify(videoOverlays[slideIdx] || []);
+    localStorage.setItem('pensarbahia_videos_' + slideIdx, val);
+    console.log('SAVE slide ' + slideIdx + ':', val);
+  } catch(e) { console.error('SAVE error:', e); }
 }
 
 function createVideoOverlay(slideIdx, data) {
   var wrapper = document.querySelector('.map-container-wrapper');
   if (!wrapper) return null;
   var id = data && data.id ? data.id : 'vid_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
-  var file = data && data.file ? data.file : VIDEO_FILES[0];
+  var slideFiles = SLIDE_VIDEOS[slideIdx] || SLIDE_VIDEOS[1];
+  var file = data && data.file && slideFiles.indexOf(data.file) !== -1 ? data.file : slideFiles[0];
 
   var box = document.createElement('div');
   box.className = 'video-overlay';
   box.dataset.vid = id;
-  box.style.left = (data && data.left != null ? data.left : 0) + 'px';
-  box.style.top = (data && data.top != null ? data.top : 0) + 'px';
+  var posLeft = (data && data.left != null ? data.left : 0);
+  var posTop = (data && data.top != null ? data.top : 0);
+  box.style.left = posLeft + 'px';
+  box.style.top = posTop + 'px';
   if (data && data.width) box.style.width = data.width + 'px';
   else { box.style.width = '100%'; box.style.height = '100%'; }
   if (data && data.height) box.style.height = data.height + 'px';
-
-  // Toolbar
-  var tbar = document.createElement('div');
-  tbar.className = 'video-tbar';
-  var sel = document.createElement('select');
-  sel.className = 'video-tbar-label';
-  VIDEO_FILES.forEach(function(f) {
-    var opt = document.createElement('option');
-    opt.value = f;
-    opt.textContent = f.replace('.mp4','');
-    if (f === file) opt.selected = true;
-    sel.appendChild(opt);
-  });
-  sel.addEventListener('change', function() {
-    var v = box.querySelector('video');
-    if (v) { v.src = 'videos/' + sel.value; v.play().catch(function(){}); }
-    scheduleVideoSave();
-  });
-  var dragHint = document.createElement('span');
-  dragHint.textContent = '\u2261';
-  dragHint.title = 'Arraste para mover';
-  dragHint.style.cssText = 'color:rgba(255,255,255,0.6);cursor:grab;padding:0 4px;font-size:14px;';
-  var sizeDec = document.createElement('button');
-  sizeDec.textContent = '\u2212';
-  sizeDec.title = 'Diminuir';
-  sizeDec.style.cssText = 'font-family:IBM Plex Sans,sans-serif;font-size:14px;font-weight:700;padding:0 6px;border:1px solid rgba(255,255,255,0.3);border-radius:3px;background:transparent;color:rgba(255,255,255,0.8);cursor:pointer;line-height:1.5;';
-  sizeDec.addEventListener('click', function(e) {
-    e.stopPropagation();
-    box.style.width = Math.round(box.offsetWidth * 0.85) + 'px';
-    box.style.height = Math.round(box.offsetHeight * 0.85) + 'px';
-    scheduleVideoSave();
-  });
-  var sizeInc = document.createElement('button');
-  sizeInc.textContent = '+';
-  sizeInc.title = 'Aumentar';
-  sizeInc.style.cssText = 'font-family:IBM Plex Sans,sans-serif;font-size:14px;font-weight:700;padding:0 6px;border:1px solid rgba(255,255,255,0.3);border-radius:3px;background:transparent;color:rgba(255,255,255,0.8);cursor:pointer;line-height:1.5;';
-  sizeInc.addEventListener('click', function(e) {
-    e.stopPropagation();
-    box.style.width = Math.round(box.offsetWidth * 1.18) + 'px';
-    box.style.height = Math.round(box.offsetHeight * 1.18) + 'px';
-    scheduleVideoSave();
-  });
-  var closeBtn = document.createElement('span');
-  closeBtn.className = 'video-tbar-close';
-  closeBtn.textContent = '\u00D7';
-  closeBtn.title = 'Remover';
-  closeBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    removeVideoOverlay(slideIdx, id);
-  });
-  tbar.appendChild(closeBtn);
-  tbar.appendChild(dragHint);
-  tbar.appendChild(sel);
-  tbar.appendChild(sizeDec);
-  tbar.appendChild(sizeInc);
-  box.appendChild(tbar);
+  console.log('CREATE overlay slide ' + slideIdx + ' id=' + id + ' left=' + posLeft + ' top=' + posTop + ' file=' + file);
 
   // Video element + Canvas for chroma key (remove white background)
   var video = document.createElement('video');
   video.src = 'videos/' + file;
   video.muted = true;
-  video.loop = true;
+  video.loop = false;
   video.playsInline = true;
   video.autoplay = true;
   box.appendChild(video);
@@ -1821,6 +1300,7 @@ function createVideoOverlay(slideIdx, data) {
   var WHITE_THRESHOLD = 200;
 
   function processChromaKey() {
+    if (video.ended) return;
     if (!video.videoWidth || !video.videoHeight) return;
     if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
       canvas.width = video.videoWidth;
@@ -1864,8 +1344,7 @@ function createVideoOverlay(slideIdx, data) {
 
   // Drag
   var dragging = false, startX, startY, origX, origY;
-  tbar.addEventListener('mousedown', function(e) {
-    if (e.target.closest('.video-tbar-close') || e.target.closest('.video-tbar-label')) return;
+  box.addEventListener('mousedown', function(e) {
     dragging = true;
     startX = e.clientX;
     startY = e.clientY;
@@ -1881,40 +1360,65 @@ function createVideoOverlay(slideIdx, data) {
   document.addEventListener('mouseup', function() {
     if (!dragging) return;
     dragging = false;
-    scheduleVideoSave();
+    var entry = {
+      id: id,
+      file: box.querySelector('video') ? box.querySelector('video').src.split('/').pop() : (SLIDE_VIDEOS[currentSlide] || SLIDE_VIDEOS[1])[0],
+      left: parseInt(box.style.left) || box.offsetLeft || 0,
+      top: parseInt(box.style.top) || box.offsetTop || 0,
+      width: parseInt(box.style.width) || box.offsetWidth || 300,
+      height: parseInt(box.style.height) || box.offsetHeight || 200
+    };
+    try {
+      var val = JSON.stringify([entry]);
+      localStorage.setItem('pensarbahia_videos_' + currentSlide, val);
+      console.log('MOUSEUP save slide ' + currentSlide + ':', val);
+    } catch(e) { console.error('MOUSEUP save error:', e); }
+    if (!videoOverlays[currentSlide]) videoOverlays[currentSlide] = [];
+    var found = false;
+    for (var i = 0; i < videoOverlays[currentSlide].length; i++) {
+      if (videoOverlays[currentSlide][i].id === id) { videoOverlays[currentSlide][i] = entry; found = true; break; }
+    }
+    if (!found) videoOverlays[currentSlide].push(entry);
   });
 
   // Save to state
   if (!videoOverlays[slideIdx]) videoOverlays[slideIdx] = [];
-  videoOverlays[slideIdx].push({ id: id, file: file, left: box.offsetLeft, top: box.offsetTop, width: box.offsetWidth, height: box.offsetHeight });
+  videoOverlays[slideIdx].push({ id: id, file: file, left: parseInt(box.style.left) || box.offsetLeft || 0, top: parseInt(box.style.top) || box.offsetTop || 0, width: parseInt(box.style.width) || box.offsetWidth || 300, height: parseInt(box.style.height) || box.offsetHeight || 200 });
   saveVideoOverlays(slideIdx);
 
   return box;
 }
 
+/* Sync video overlay state from DOM into videoOverlays object */
+function syncVideoOverlayState(slideIdx) {
+  if (_videoSaveTimer) { clearTimeout(_videoSaveTimer); _videoSaveTimer = null; }
+  if (!videoOverlays[slideIdx]) videoOverlays[slideIdx] = [];
+  document.querySelectorAll('.video-overlay').forEach(function(box) {
+    var id = box.dataset.vid;
+    var entry = null;
+    for (var i = 0; i < videoOverlays[slideIdx].length; i++) {
+      if (videoOverlays[slideIdx][i].id === id) { entry = videoOverlays[slideIdx][i]; break; }
+    }
+    if (!entry) {
+      entry = { id: id, file: (SLIDE_VIDEOS[slideIdx] || SLIDE_VIDEOS[1])[0] };
+      videoOverlays[slideIdx].push(entry);
+    }
+    entry.file = (box.querySelector('video') ? box.querySelector('video').src.split('/').pop() : (SLIDE_VIDEOS[slideIdx] || SLIDE_VIDEOS[1])[0]);
+    entry.left = parseInt(box.style.left) || box.offsetLeft || 0;
+    entry.top = parseInt(box.style.top) || box.offsetTop || 0;
+    entry.width = parseInt(box.style.width) || box.offsetWidth || 300;
+    entry.height = parseInt(box.style.height) || box.offsetHeight || 200;
+  });
+  console.log('SYNC slide ' + slideIdx + ' state:', JSON.stringify(videoOverlays[slideIdx]));
+}
+
 var _videoSaveTimer = null;
 function scheduleVideoSave() {
   if (_videoSaveTimer) clearTimeout(_videoSaveTimer);
+  var capturedSlide = currentSlide;
   _videoSaveTimer = setTimeout(function() {
-    var slideIdx = currentSlide;
-    if (!videoOverlays[slideIdx]) videoOverlays[slideIdx] = [];
-    document.querySelectorAll('.video-overlay').forEach(function(box) {
-      var id = box.dataset.vid;
-      var entry = null;
-      for (var i = 0; i < videoOverlays[slideIdx].length; i++) {
-        if (videoOverlays[slideIdx][i].id === id) { entry = videoOverlays[slideIdx][i]; break; }
-      }
-      if (!entry) {
-        entry = { id: id };
-        videoOverlays[slideIdx].push(entry);
-      }
-      entry.file = (box.querySelector('video') ? box.querySelector('video').src.split('/').pop() : VIDEO_FILES[0]);
-      entry.left = box.offsetLeft;
-      entry.top = box.offsetTop;
-      entry.width = box.offsetWidth;
-      entry.height = box.offsetHeight;
-    });
-    saveVideoOverlays(slideIdx);
+    syncVideoOverlayState(capturedSlide);
+    saveVideoOverlays(capturedSlide);
     _videoSaveTimer = null;
   }, 300);
 }
@@ -1932,14 +1436,65 @@ function restoreVideoOverlays(slideIdx) {
   document.querySelectorAll('.video-overlay').forEach(function(b) { b.remove(); });
   try {
     var saved = localStorage.getItem('pensarbahia_videos_' + slideIdx);
+    console.log('RESTORE slide ' + slideIdx + ' raw:', saved);
+    var slideFiles = SLIDE_VIDEOS[slideIdx];
+    if (!slideFiles || slideFiles.length === 0) { videoOverlays[slideIdx] = []; return; }
     if (saved) {
-      videoOverlays[slideIdx] = JSON.parse(saved);
-      videoOverlays[slideIdx].forEach(function(data) {
-        createVideoOverlay(slideIdx, data);
-      });
+      var parsed = JSON.parse(saved);
+      console.log('RESTORE parsed:', JSON.stringify(parsed));
+      // Find entry with actual position data (id + left + top), fallback to first
+      var data = parsed.length > 0 ? parsed[0] : { file: slideFiles[0] };
+      for (var i = 0; i < parsed.length; i++) {
+        if (parsed[i] && parsed[i].id && parsed[i].left != null && parsed[i].top != null) {
+          data = parsed[i];
+          break;
+        }
+      }
+      data.file = slideFiles[0];
+      // Ensure data has id for DOM consistency
+      if (!data.id) data.id = 'vid_' + Date.now() + '_' + (Math.random() * 1e9 | 0);
+      createVideoOverlay(slideIdx, data);
+      // Keep only what createVideoOverlay just created (last entry), dropping stale ghost entries
+      var arr = videoOverlays[slideIdx];
+      videoOverlays[slideIdx] = [arr[arr.length - 1]];
+      saveVideoOverlays(slideIdx);
     } else {
       videoOverlays[slideIdx] = [];
+      createVideoOverlay(slideIdx, { file: slideFiles[0] });
     }
-  } catch(e) { videoOverlays[slideIdx] = []; }
+  } catch(e) { console.error('RESTORE error:', e, 'slide:', slideIdx); videoOverlays[slideIdx] = []; }
 }
+
+/* Arrow keys: cycle video files within current slide */
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'TEXTAREA')) return;
+  if (currentSlide < 1 || currentSlide > 4) return;
+  var overlays = document.querySelectorAll('.video-overlay');
+  if (overlays.length === 0) return;
+  var slideFiles = SLIDE_VIDEOS[currentSlide];
+  if (!slideFiles || slideFiles.length < 2) return;
+  var video = overlays[0].querySelector('video');
+  if (!video) return;
+  var curFile = video.src.split('/').pop();
+  var curIdx = slideFiles.indexOf(curFile);
+  if (curIdx === -1) curIdx = 0;
+  if (e.key === 'ArrowRight') {
+    curIdx = (curIdx + 1) % slideFiles.length;
+  } else {
+    curIdx = (curIdx - 1 + slideFiles.length) % slideFiles.length;
+  }
+  var newFile = slideFiles[curIdx];
+  video.src = 'videos/' + newFile;
+  video.play().catch(function(){});
+  console.log('ARROW switch to file:', newFile);
+  var sel = overlays[0].querySelector('.video-tbar-label');
+  if (sel) sel.value = newFile;
+  if (videoOverlays[currentSlide] && videoOverlays[currentSlide].length > 0) {
+    videoOverlays[currentSlide][0].file = newFile;
+    saveVideoOverlays(currentSlide);
+  }
+  if (currentSlide === 4 && newFile === '10.mp4') { toggleGallery(true); } else if (currentSlide === 4) { toggleGallery(false); }
+  e.preventDefault();
+});
 

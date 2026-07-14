@@ -113,7 +113,7 @@ const LAYER_GROUPS = [
         id: 'mac_cidades', label: 'Pontos Log\u00edsticos',
         file: 'data/MACRORREGI\u00c3O.geojson',
         type: 'bts', subtype: 'point', color: '#722f37',
-        labelDirections: { 'Cama\u00e7ari': 'top', 'Salvador': 'bottom' }
+        labelDirections: { 'Cama\u00e7ari': 'top', 'Salvador': 'bottom', 'Aratu': 'left', 'Sim\u00f5es Filho': 'right', 'Itatim': 'top', 'Castro Alves': 'bottom', 'Santo Ant\u00f4nio de Jesus': 'left' }
       },
       {
         id: 'mac_vias', label: 'Ferrovias e Rodovias',
@@ -134,7 +134,27 @@ const LAYER_GROUPS = [
             color: '#e74c3c', weight: 5, hideLabel: true
           }
         }
-      }
+      },
+      {
+        id: 'mac_ferrovias', label: 'Plano ferrovi\u00e1rio',
+        file: 'data/ferroviasmacrorregiao.geojson',
+        type: 'bts', subtype: 'line',
+        color: '#8b0000', weight: 5,
+        submenu: true,
+        legendLabel: 'Ferrovia',
+        featureNames: {
+          'Constru\u00e7\u00e3o de ferrovia': {
+            ids: ['eymf1', 'P6xA1', 'ujoXL', 'V260z', 'iehS6'],
+            label: 'CONSTRU\u00c7\u00c3O DE FERROVIA',
+            color: '#e74c3c', weight: 5
+          },
+          'Requalifica\u00e7\u00e3o de ferrovia': {
+            ids: ['bixrh', '2rFE7'],
+            label: 'REQUALIFICA\u00c7\u00c3O DE FERROVIA',
+            color: '#3498db', weight: 5
+          }
+        }
+      },
     ]
   },
   {
