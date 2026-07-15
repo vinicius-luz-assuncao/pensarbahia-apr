@@ -1954,6 +1954,13 @@ document.addEventListener('keydown', function(e) {
     }
     if (bestIdx >= 0 && bestIdx !== currentStep) {
       goToPresentationStep(bestIdx);
+    } else if (bestIdx === -1) {
+      // No step matches this video — activate all layers for this slide
+      var lastStep = -1;
+      for (var si = 0; si < PRESENTATION_STEPS.length; si++) {
+        if (PRESENTATION_STEPS[si].slide === currentSlide) lastStep = si;
+      }
+      if (lastStep >= 0) goToPresentationStep(lastStep);
     }
   }
   e.preventDefault();
