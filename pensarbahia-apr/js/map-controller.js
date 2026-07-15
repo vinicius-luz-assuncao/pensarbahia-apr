@@ -1898,7 +1898,7 @@ document.addEventListener('keydown', function(e) {
   
   // After last video of slide, right arrow goes to next slide
   if (e.key === 'ArrowRight') {
-    var slideLastVideo = { 1: '2.mp4', 2: '5.mp4' };
+    var slideLastVideo = { 1: '2.mp4', 2: '5.mp4', 3: '8.mp4' };
     var lastVid = slideLastVideo[currentSlide];
     if (lastVid) {
       var curVid = document.querySelectorAll('.video-overlay');
