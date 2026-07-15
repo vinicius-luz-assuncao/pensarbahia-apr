@@ -53,8 +53,9 @@ function updateLegend() {
                     if (l.featureNames[k].label === name) {
                       color = l.featureNames[k].color;
                       if (l.featureNames[k].hideLabel) hideInLegend = true;
-                    }
-                  });
+  }
+});
+
                   if (hideInLegend) return;
                 } else {
                   var idx = parseInt(itemId.split('_').pop());
@@ -62,8 +63,8 @@ function updateLegend() {
                   color = style.color;
                 }
                 html += '<div><span style="display:inline-block;width:12px;height:2px;background:' + color + ';margin-right:6px;vertical-align:middle"></span>' + name + '</div>';
-              }
-            });
+  }
+});
           }
         } else {
           html += '<div><span style="display:inline-block;' +
@@ -881,6 +882,10 @@ function switchSlide(index) {
     }
   }
   if (index >= 1 && index <= 4) restoreVideoOverlays(index);
+  // Auto-start presentation steps when entering slide 1 from cover
+  if (index === 1 && currentSlide === 0 && PRESENTATION_STEPS.length > 0) {
+    setTimeout(function() { startAutoPlay(); }, 500);
+  }
 
   currentSlide = index;
 
@@ -1008,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.querySelector('.slide-tabs').addEventListener('click', function(e) {
     var tab = e.target.closest('.slide-tab');
-    if (tab) switchSlide(parseInt(tab.dataset.slide));
+    if (tab) { currentStep = -1; switchSlide(parseInt(tab.dataset.slide)); }
   });
 
   document.getElementById('cover-start').addEventListener('click', function() {
@@ -1028,6 +1033,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     var btn = e.target.closest('.page-layer-btn');
     if (btn && btn.dataset.pageLayer) {
+      currentStep = -1;
       if (btn.dataset.pageLayer === 'int_bahia' && currentSlide === 1) {
         switchSlide(2);
       } else {
@@ -1035,9 +1041,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     var toggleAll = e.target.closest('.toggle-all-btn');
-    if (toggleAll) toggleAllLayers(parseInt(toggleAll.dataset.page));
+    if (toggleAll) { currentStep = -1; toggleAllLayers(parseInt(toggleAll.dataset.page)); }
     var nextBtn = e.target.closest('.slide-next-btn');
-    if (nextBtn && nextBtn.dataset.next) switchSlide(parseInt(nextBtn.dataset.next));
+    if (nextBtn && nextBtn.dataset.next) { currentStep = -1; switchSlide(parseInt(nextBtn.dataset.next)); }
   });
 
   document.getElementById('gallery-grid').addEventListener('click', function(e) {
@@ -1256,6 +1262,77 @@ var SLIDE_VIDEOS = {
   4: ['9.mp4','10.mp4','11.mp4']
 };
 var videoOverlays = {};
+
+/* ============================================================
+   PRESENTATION STEP SYSTEM
+   ============================================================ */
+var currentStep = -1;
+var PRESENTATION_STEPS = [
+  // Slide 1 — Integração Bahia-Brasil
+  { slide: 1, layers: ['int_brasil', 'int_bahia'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli', 'route_fiol'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli', 'route_fiol', 'route_transno'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul', 'route_fico'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul', 'route_fico', 'int_cidades'], video: '1.mp4' },
+];
+
+var slideToPagePres = {1: 0, 2: 1, 3: 2, 4: 3};
+
+var autoPlayTimer = null;
+var autoPlayDelay = 800;
+
+function startAutoPlay() {
+  stopAutoPlay();
+  if (currentStep >= PRESENTATION_STEPS.length - 1) return;
+  var firstStep = (currentStep === -1) ? 0 : currentStep + 1;
+  goToPresentationStep(firstStep);
+  autoPlayTimer = setInterval(function() {
+    var nextIdx = currentStep + 1;
+    if (nextIdx >= PRESENTATION_STEPS.length) { stopAutoPlay(); return; }
+    goToPresentationStep(nextIdx);
+  }, autoPlayDelay);
+}
+
+function stopAutoPlay() {
+  if (autoPlayTimer) { clearInterval(autoPlayTimer); autoPlayTimer = null; }
+}
+
+function goToPresentationStep(idx) {
+  if (idx < 0 || idx >= PRESENTATION_STEPS.length) return;
+  var step = PRESENTATION_STEPS[idx];
+
+  // Switch slide if needed (triggers video overlay creation, map fly, etc.)
+  if (step.slide !== currentSlide) {
+    switchSlide(step.slide);
+  }
+
+  // Toggle layers on this slide's page to match the step
+  var pageKey = slideToPagePres[step.slide];
+  var allPageLayers = PAGE_LAYER_MAP[pageKey] || [];
+  allPageLayers.forEach(function(id) {
+    var lc = getLayerConfig(id);
+    if (!lc || lc.type === 'mancha' || lc.subRoute) return;
+    var shouldBeOn = step.layers.indexOf(id) !== -1;
+    if (shouldBeOn && !activeLayers[id]) toggleLayer(id);
+    else if (!shouldBeOn && activeLayers[id]) toggleLayer(id);
+  });
+
+  // Set video file if specified in the step
+  if (step.video) {
+    var overlays = document.querySelectorAll('.video-overlay');
+    if (overlays.length > 0) {
+      var video = overlays[0].querySelector('video');
+      if (video) {
+        video.src = 'videos/' + step.video;
+        video.play().catch(function(){});
+      }
+    }
+  }
+
+  currentStep = idx;
+}
 
 function saveVideoOverlays(slideIdx) {
   try {
@@ -1481,36 +1558,67 @@ function restoreVideoOverlays(slideIdx) {
   } catch(e) { console.error('RESTORE error:', e, 'slide:', slideIdx); videoOverlays[slideIdx] = []; }
 }
 
-/* Arrow keys: cycle video files within current slide */
+/* Arrow keys: navigate presentation steps. Shift+Arrow: cycle videos */
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
   if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'TEXTAREA')) return;
-  if (currentSlide < 1 || currentSlide > 4) return;
-  var overlays = document.querySelectorAll('.video-overlay');
-  if (overlays.length === 0) return;
-  var slideFiles = SLIDE_VIDEOS[currentSlide];
-  if (!slideFiles || slideFiles.length < 2) return;
-  var video = overlays[0].querySelector('video');
-  if (!video) return;
-  var curFile = video.src.split('/').pop();
-  var curIdx = slideFiles.indexOf(curFile);
-  if (curIdx === -1) curIdx = 0;
+
+  // Shift+Arrow: cycle video files within current slide
+  if (e.shiftKey) {
+    if (currentSlide < 1 || currentSlide > 4) return;
+    var overlays = document.querySelectorAll('.video-overlay');
+    if (overlays.length === 0) return;
+    var slideFiles = SLIDE_VIDEOS[currentSlide];
+    if (!slideFiles || slideFiles.length < 2) return;
+    var video = overlays[0].querySelector('video');
+    if (!video) return;
+    var curFile = video.src.split('/').pop();
+    var curIdx = slideFiles.indexOf(curFile);
+    if (curIdx === -1) curIdx = 0;
+    if (e.key === 'ArrowRight') {
+      curIdx = (curIdx + 1) % slideFiles.length;
+    } else {
+      curIdx = (curIdx - 1 + slideFiles.length) % slideFiles.length;
+    }
+    var newFile = slideFiles[curIdx];
+    video.src = 'videos/' + newFile;
+    video.play().catch(function(){});
+    console.log('SHIFT+ARROW switch to file:', newFile);
+    if (videoOverlays[currentSlide] && videoOverlays[currentSlide].length > 0) {
+      videoOverlays[currentSlide][0].file = newFile;
+      saveVideoOverlays(currentSlide);
+    }
+    if (currentSlide === 4 && newFile === '10.mp4') { toggleGallery(true); } else if (currentSlide === 4) { toggleGallery(false); }
+    e.preventDefault();
+    return;
+  }
+
+  // Plain Arrow: navigate presentation steps
+  if (PRESENTATION_STEPS.length === 0) return;
+
   if (e.key === 'ArrowRight') {
-    curIdx = (curIdx + 1) % slideFiles.length;
-  } else {
-    curIdx = (curIdx - 1 + slideFiles.length) % slideFiles.length;
+    // Right arrow: start auto-play forward (or stop if already playing)
+    if (autoPlayTimer) { stopAutoPlay(); }
+    else { startAutoPlay(); }
+    e.preventDefault();
+    return;
   }
-  var newFile = slideFiles[curIdx];
-  video.src = 'videos/' + newFile;
-  video.play().catch(function(){});
-  console.log('ARROW switch to file:', newFile);
-  var sel = overlays[0].querySelector('.video-tbar-label');
-  if (sel) sel.value = newFile;
-  if (videoOverlays[currentSlide] && videoOverlays[currentSlide].length > 0) {
-    videoOverlays[currentSlide][0].file = newFile;
-    saveVideoOverlays(currentSlide);
+
+  if (e.key === 'ArrowLeft') {
+    // Left arrow: stop auto-play, go back one step
+    stopAutoPlay();
+    if (currentStep === -1) return;
+    var prevIdx = currentStep - 1;
+    if (prevIdx < 0) { goToPresentationStep(0); currentStep = -1; }
+    else { goToPresentationStep(prevIdx); }
+    e.preventDefault();
   }
-  if (currentSlide === 4 && newFile === '10.mp4') { toggleGallery(true); } else if (currentSlide === 4) { toggleGallery(false); }
-  e.preventDefault();
+});
+
+// Stop auto-play on any other key press
+document.addEventListener('keydown', function(e) {
+  if (!autoPlayTimer) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') return;
+  stopAutoPlay();
 });
 
