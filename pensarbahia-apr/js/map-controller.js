@@ -1313,7 +1313,7 @@ function goToPresentationStep(idx) {
   var allPageLayers = PAGE_LAYER_MAP[pageKey] || [];
   allPageLayers.forEach(function(id) {
     var lc = getLayerConfig(id);
-    if (!lc || lc.type === 'mancha' || lc.subRoute) return;
+    if (!lc || lc.type === 'mancha') return;
     var shouldBeOn = step.layers.indexOf(id) !== -1;
     if (shouldBeOn && !activeLayers[id]) toggleLayer(id);
     else if (!shouldBeOn && activeLayers[id]) toggleLayer(id);
@@ -1367,6 +1367,7 @@ function createVideoOverlay(slideIdx, data) {
   video.muted = true;
   video.loop = false;
   video.playsInline = true;
+  video.autoplay = true;
   box.appendChild(video);
 
   var canvas = document.createElement('canvas');
@@ -1374,10 +1375,9 @@ function createVideoOverlay(slideIdx, data) {
 
   var ctx = canvas.getContext('2d');
   var WHITE_THRESHOLD = 200;
-  var chromaActive = false;
 
   function processChromaKey() {
-    if (video.ended || !chromaActive) return;
+    if (video.ended) return;
     if (!video.videoWidth || !video.videoHeight) return;
     if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
       canvas.width = video.videoWidth;
@@ -1395,43 +1395,27 @@ function createVideoOverlay(slideIdx, data) {
     ctx.putImageData(imageData, 0, 0);
   }
 
-  function startChroma() {
-    chromaActive = true;
-    if (video.requestVideoFrameCallback) {
-      function onVideoFrame(now, metadata) {
-        processChromaKey();
-        video.requestVideoFrameCallback(onVideoFrame);
-      }
+  if (video.requestVideoFrameCallback) {
+    function onVideoFrame(now, metadata) {
+      processChromaKey();
       video.requestVideoFrameCallback(onVideoFrame);
-    } else {
-      var ckTimer = null;
+    }
+    video.requestVideoFrameCallback(onVideoFrame);
+  } else {
+    var ckTimer = null;
+    video.addEventListener('play', function onPlay() {
       function tick() {
         if (!video.paused) {
           processChromaKey();
           ckTimer = setTimeout(tick, 66);
         }
       }
-      video.addEventListener('play', function onPlay() {
-        tick();
-      });
-      video.addEventListener('pause', function onPause() {
-        if (ckTimer) clearTimeout(ckTimer);
-      });
-    }
+      tick();
+    });
+    video.addEventListener('pause', function onPause() {
+      if (ckTimer) clearTimeout(ckTimer);
+    });
   }
-
-  var ready = function() {
-    video.removeEventListener('canplay', ready);
-    video.removeEventListener('loadedmetadata', ready);
-    startChroma();
-    video.play().catch(function(){});
-  };
-  video.addEventListener('canplay', ready);
-  video.addEventListener('loadedmetadata', ready);
-  // Fallback: start after a short delay if events never fire
-  setTimeout(function() {
-    if (!chromaActive) { startChroma(); video.play().catch(function(){}); }
-  }, 1000);
 
   wrapper.appendChild(box);
 
