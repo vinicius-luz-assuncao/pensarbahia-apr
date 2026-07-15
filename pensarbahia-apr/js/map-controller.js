@@ -6,6 +6,10 @@ let fetchCache = {};
 var subLayers = {};
 var lastToggled = null;
 var bahiaOutlineLayer = null;
+var CACHE_BUSTER = '2';
+
+function videoUrl(file) { return 'videos/' + file + '?v=' + CACHE_BUSTER; }
+function videoFileFromSrc(src) { return src.split('/').pop().split('?')[0]; }
 
 LAYER_GROUPS.forEach(function(g) {
   g.layers.forEach(function(l) { activeLayers[l.id] = false; });
@@ -982,7 +986,7 @@ function switchSlide(index) {
     } else {
       var video = overlays[0].querySelector('video');
       if (video) {
-        video.src = 'videos/' + firstFile;
+        video.src = videoUrl(firstFile);
         video.play().catch(function(){});
       }
     }
@@ -1639,9 +1643,9 @@ function goToPresentationStep(idx) {
     } else {
       var video = overlays[0].querySelector('video');
       if (video) {
-        var curFile = video.src.split('/').pop();
+        var curFile = videoFileFromSrc(video.src);
         if (curFile !== step.video) {
-          video.src = 'videos/' + step.video;
+          video.src = videoUrl(step.video);
           video.play().catch(function(){});
         }
       }
@@ -1680,7 +1684,7 @@ function createVideoOverlay(slideIdx, data) {
 
   // Video element + Canvas for chroma key (remove white background)
   var video = document.createElement('video');
-  video.src = 'videos/' + file;
+  video.src = videoUrl(file);
   video.muted = true;
   video.loop = false;
   video.playsInline = true;
@@ -1756,7 +1760,7 @@ function createVideoOverlay(slideIdx, data) {
     dragging = false;
     var entry = {
       id: id,
-      file: box.querySelector('video') ? box.querySelector('video').src.split('/').pop() : (SLIDE_VIDEOS[currentSlide] || SLIDE_VIDEOS[1])[0],
+      file: box.querySelector('video') ? videoFileFromSrc(box.querySelector('video').src) : (SLIDE_VIDEOS[currentSlide] || SLIDE_VIDEOS[1])[0],
       left: parseInt(box.style.left) || box.offsetLeft || 0,
       top: parseInt(box.style.top) || box.offsetTop || 0,
       width: parseInt(box.style.width) || box.offsetWidth || 300,
@@ -1797,7 +1801,7 @@ function syncVideoOverlayState(slideIdx) {
       entry = { id: id, file: (SLIDE_VIDEOS[slideIdx] || SLIDE_VIDEOS[1])[0] };
       videoOverlays[slideIdx].push(entry);
     }
-    entry.file = (box.querySelector('video') ? box.querySelector('video').src.split('/').pop() : (SLIDE_VIDEOS[slideIdx] || SLIDE_VIDEOS[1])[0]);
+    entry.file = (box.querySelector('video') ? videoFileFromSrc(box.querySelector('video').src) : (SLIDE_VIDEOS[slideIdx] || SLIDE_VIDEOS[1])[0]);
     entry.left = parseInt(box.style.left) || box.offsetLeft || 0;
     entry.top = parseInt(box.style.top) || box.offsetTop || 0;
     entry.width = parseInt(box.style.width) || box.offsetWidth || 300;
@@ -1897,7 +1901,7 @@ document.addEventListener('keydown', function(e) {
   if (!slideFiles || slideFiles.length < 2) return;
   var video = overlays[0].querySelector('video');
   if (!video) return;
-  var curFile = video.src.split('/').pop();
+  var curFile = videoFileFromSrc(video.src);
   var curIdx = slideFiles.indexOf(curFile);
   if (curIdx === -1) curIdx = 0;
   if (e.key === 'ArrowRight') {
@@ -1906,7 +1910,7 @@ document.addEventListener('keydown', function(e) {
     curIdx = (curIdx - 1 + slideFiles.length) % slideFiles.length;
   }
   var newFile = slideFiles[curIdx];
-  video.src = 'videos/' + newFile;
+  video.src = videoUrl(newFile);
   video.play().catch(function(){});
   // Stop auto-play when manually cycling video
   stopAutoPlay();
