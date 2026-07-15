@@ -145,9 +145,10 @@ function initMap() {
 }
 
 function fetchFile(url) {
-  if (!fetchCache[url])
-    fetchCache[url] = fetch(url).then(function(r) { if (!r.ok) throw new Error(); return r.json(); });
-  return fetchCache[url];
+  var cacheUrl = url + '?v=' + CACHE_BUSTER;
+  if (!fetchCache[cacheUrl])
+    fetchCache[cacheUrl] = fetch(cacheUrl).then(function(r) { if (!r.ok) throw new Error(); return r.json(); });
+  return fetchCache[cacheUrl];
 }
 
 function loadLayer(lc) {
@@ -1320,7 +1321,7 @@ function esriJsonToGeoJSON(esriJson) {
 }
 
 function loadBahiaOutline() {
-  fetch('data/bahia-outline.geojson').then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+  fetch('data/bahia-outline.geojson?v=' + CACHE_BUSTER).then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
     .then(function(gj) {
       bahiaOutlineLayer = L.geoJSON(gj, { style: { color: '#23251d', weight: 1.5, fillColor: '#fcfcfa', fillOpacity: 0.3 } });
       updateBahiaOutline();
