@@ -1896,22 +1896,25 @@ document.addEventListener('keydown', function(e) {
   // Plain Arrow: cycle video files within current slide
   if (currentSlide < 1 || currentSlide > 4) return;
   
-  // Slide 1: after video 2, right arrow goes to slide 2
-  if (currentSlide === 1 && e.key === 'ArrowRight') {
-    var curVid = document.querySelectorAll('.video-overlay');
-    if (curVid.length) {
-      var cv = curVid[0].querySelector('video');
-      if (cv) {
-        var cf = videoFileFromSrc(cv.src);
-        if (cf === '2.mp4') {
+  // After last video of slide, right arrow goes to next slide
+  if (e.key === 'ArrowRight') {
+    var slideLastVideo = { 1: '2.mp4', 2: '5.mp4' };
+    var lastVid = slideLastVideo[currentSlide];
+    if (lastVid) {
+      var curVid = document.querySelectorAll('.video-overlay');
+      if (curVid.length) {
+        var cv = curVid[0].querySelector('video');
+        if (cv && videoFileFromSrc(cv.src) === lastVid) {
           e.preventDefault();
           currentStep = -1;
-          switchSlide(2);
+          switchSlide(currentSlide + 1);
           return;
         }
       }
     }
   }
+  
+  var overlays = document.querySelectorAll('.video-overlay');
   
   var overlays = document.querySelectorAll('.video-overlay');
   if (overlays.length === 0) return;
