@@ -102,7 +102,7 @@ const LAYER_GROUPS = [
     expanded: true,
     layers: [
       {
-        id: 'mac_mancha', label: 'Área de Abrangência',
+        id: 'mac_mancha', label: 'Organiza\u00e7\u00e3o territorial SSA - FSA',
         type: 'mancha',
         color: '#2ecc71',
         fillOpacity: 0.12,
@@ -154,6 +154,11 @@ const LAYER_GROUPS = [
             color: '#3498db', weight: 5
           }
         }
+      },
+      {
+        id: 'mac_circulo', label: 'Complexos portu\u00e1rios',
+        type: 'circle-editor', center: [-12.75421, -38.43224], radius: 14849,
+        color: '#f39c12', weight: 2
       },
     ]
   },

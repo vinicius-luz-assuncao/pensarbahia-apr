@@ -24,8 +24,8 @@ function getLayerConfig(id) {
 var LegendControl = L.Control.extend({
   onAdd: function() {
     var div = L.DomUtil.create('div', 'map-legend');
-    div.innerHTML = '<div style="background:rgba(255,255,255,0.95);padding:8px 12px;border-radius:6px;font-size:12px;font-family:\'IBM Plex Sans\',sans-serif;line-height:1.6;border:1px solid #dcdfd2">' +
-      '<div style="font-weight:600;margin-bottom:4px;color:#23251d">Legenda</div><div class="legend-entries"></div></div>';
+    div.innerHTML = '<div style="background:rgba(255,255,255,0.95);padding:10px 14px;border-radius:8px;font-size:14px;font-family:\'IBM Plex Sans\',sans-serif;line-height:1.8;border:2px solid #1a3a5c;box-shadow:0 4px 12px rgba(0,0,0,0.25)">' +
+      '<div style="font-weight:700;margin-bottom:6px;color:#1a3a5c;font-size:15px;text-transform:uppercase;letter-spacing:0.5px">Legenda</div><div class="legend-entries"></div></div>';
     return div;
   }
 });
@@ -41,7 +41,7 @@ function updateLegend() {
         if (l.submenu && subLayers[l.id]) {
           var sl = subLayers[l.id];
           if (l.legendLabel) {
-            html += '<div><span style="display:inline-block;width:12px;height:2px;background:' + l.color + ';margin-right:6px;vertical-align:middle"></span>' + l.legendLabel + '</div>';
+            html += '<div><span style="display:inline-block;width:22px;height:4px;background:' + l.color + ';margin-right:8px;vertical-align:middle"></span><strong>' + l.legendLabel + '</strong></div>';
           } else {
             Object.keys(sl.names).forEach(function(itemId) {
               if (sl.active[itemId]) {
@@ -62,18 +62,18 @@ function updateLegend() {
                   var style = umapLineStyle(sl.features[idx], l);
                   color = style.color;
                 }
-                html += '<div><span style="display:inline-block;width:12px;height:2px;background:' + color + ';margin-right:6px;vertical-align:middle"></span>' + name + '</div>';
+                html += '<div><span style="display:inline-block;width:22px;height:4px;background:' + color + ';margin-right:8px;vertical-align:middle"></span><strong>' + name + '</strong></div>';
   }
 });
           }
         } else {
           html += '<div><span style="display:inline-block;' +
             (l.subtype === 'point' || l.type === 'polos'
-              ? 'width:10px;height:10px;border-radius:50%;background:' + l.color + ';margin-right:6px;vertical-align:middle'
+              ? 'width:14px;height:14px;border-radius:50%;background:' + l.color + ';margin-right:8px;vertical-align:middle'
               : l.geometry === 'line' || l.subtype === 'line'
-                ? 'width:12px;height:2px;background:' + l.color + ';margin-right:6px;vertical-align:middle'
-                : 'width:12px;height:10px;background:' + l.color + ';margin-right:6px;vertical-align:middle;opacity:0.25;border:1px solid ' + l.color) +
-            '"></span>' + l.label + '</div>';
+                ? 'width:22px;height:4px;background:' + l.color + ';margin-right:8px;vertical-align:middle'
+                : 'width:16px;height:14px;background:' + l.color + ';margin-right:8px;vertical-align:middle;opacity:0.25;border:1px solid ' + l.color) +
+            '"></span><strong>' + l.label + '</strong></div>';
         }
       }
     });
@@ -89,14 +89,14 @@ function updateLegend() {
     });
     if (isActive) {
       var lc = getLayerConfig(routeId);
-      html += '<div><span style="display:inline-block;width:12px;height:2px;background:' + (lc ? lc.color : '#999') + ';margin-right:6px;vertical-align:middle"></span>' + (lc ? lc.label : mapping.name) + '</div>';
+      html += '<div><span style="display:inline-block;width:22px;height:4px;background:' + (lc ? lc.color : '#999') + ';margin-right:8px;vertical-align:middle"></span><strong>' + (lc ? lc.label : mapping.name) + '</strong></div>';
     }
   });
 
   // Bahia legend custom entries (shown when bahia image is active)
   var bahiaFS = document.getElementById('bahia-fullscreen');
   if (bahiaFS && bahiaFS.classList.contains('active')) {
-    html += '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #dcdfd2;font-weight:600;font-size:11px;color:#555">RODOVIAS BAHIA</div>';
+    html += '<div style="margin-top:8px;padding-top:8px;border-top:2px solid #1a3a5c;font-weight:700;font-size:13px;color:#1a3a5c;letter-spacing:0.3px">RODOVIAS BAHIA</div>';
     html += '<div class="legend-custom-row"><span class="legend-swatch solid-green"></span> FEDERAL PAVIMENTADA</div>';
     html += '<div class="legend-custom-row"><span class="legend-swatch dashed-green"></span> FEDERAL SEM PAVIMENTA\u00c7\u00c3O</div>';
     html += '<div class="legend-custom-row"><span class="legend-swatch solid-purple"></span> ESTADUAL PAVIMENTADA</div>';
@@ -153,9 +153,100 @@ function loadLayer(lc) {
     case 'bts': loadBTS(lc); break;
     case 'polos': loadPolos(lc); break;
     case 'circle-editor':
-      var circle = L.circle(lc.center, { radius: lc.radius, color: lc.color, weight: lc.weight || 2, fillColor: lc.color, fillOpacity: 0.08 });
-      mapLayers[lc.id] = L.layerGroup([circle]);
-      if (activeLayers[lc.id]) mapInstance.addLayer(mapLayers[lc.id]);
+      (function(lc) {
+        var saved = null;
+        try { saved = JSON.parse(localStorage.getItem('pensarbahia_circle_' + lc.id)); } catch(e) {}
+        var center = saved && saved.center ? L.latLng(saved.center[0], saved.center[1]) : L.latLng(lc.center[0], lc.center[1]);
+        var radius = (saved && saved.radius != null) ? saved.radius : lc.radius;
+        var color = lc.color || '#f39c12';
+
+        var circle = L.circle(center, { radius: radius, color: color, weight: lc.weight || 2, fillColor: color, fillOpacity: 0.08 });
+
+        function getRightEdge(c, r) {
+          var R = 6371000;
+          var lat = c.lat * Math.PI / 180;
+          var d = r / R;
+          return L.latLng(c.lat, c.lng + d / Math.cos(lat) * 180 / Math.PI);
+        }
+
+        var resizer = L.marker(getRightEdge(center, radius), {
+          icon: L.divIcon({
+            className: 'circle-resize-handle',
+            html: '<div style="width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid ' + color + ';cursor:nesw-resize;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+          }),
+          draggable: true
+        });
+
+        var group = L.layerGroup([circle, resizer]);
+        mapLayers[lc.id] = group;
+        group._isCircleLayer = true;
+
+        function saveCircle() {
+          var c = circle.getLatLng();
+          var r = circle.getRadius();
+          try {
+            localStorage.setItem('pensarbahia_circle_' + lc.id, JSON.stringify({ center: [c.lat, c.lng], radius: r }));
+          } catch(e) {}
+        }
+
+        function updateResizer() {
+          var c = circle.getLatLng();
+          var r = circle.getRadius();
+          resizer.setLatLng(getRightEdge(c, r));
+        }
+
+        // Drag the circle itself
+        var dragging = false, dragStart = null, origCenter = null;
+        circle.on('mousedown', function(e) {
+          if (e.originalEvent.button !== 0) return;
+          dragging = true;
+          dragStart = e.latlng;
+          origCenter = circle.getLatLng();
+          if (mapInstance.dragging) mapInstance.dragging.disable();
+          L.DomEvent.stopPropagation(e.originalEvent);
+        });
+
+        mapInstance.on('mousemove', function(e) {
+          if (!dragging) return;
+          var lat = origCenter.lat + (e.latlng.lat - dragStart.lat);
+          var lng = origCenter.lng + (e.latlng.lng - dragStart.lng);
+          circle.setLatLng([lat, lng]);
+          updateResizer();
+        });
+
+        mapInstance.on('mouseup', function() {
+          if (dragging) {
+            dragging = false;
+            if (mapInstance.dragging) mapInstance.dragging.enable();
+            saveCircle();
+          }
+        });
+
+        // Resize via draggable marker
+        resizer.on('drag', function() {
+          var c = circle.getLatLng();
+          var p = resizer.getLatLng();
+          var R = 6371000;
+          var lat1 = c.lat * Math.PI / 180;
+          var lng1 = c.lng * Math.PI / 180;
+          var lat2 = p.lat * Math.PI / 180;
+          var lng2 = p.lng * Math.PI / 180;
+          var dlat = lat2 - lat1;
+          var dlng = lng2 - lng1;
+          var a = Math.sin(dlat/2) * Math.sin(dlat/2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlng/2) * Math.sin(dlng/2);
+          var dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          circle.setRadius(Math.max(dist, 100));
+        });
+
+        resizer.on('dragend', function() {
+          saveCircle();
+          updateResizer();
+        });
+
+        if (activeLayers[lc.id]) mapInstance.addLayer(group);
+      })(lc);
       break;
     case 'mancha':
       var saved = null;
@@ -761,7 +852,7 @@ function initBahiaDrag() {
 const PAGE_LAYER_MAP = {
   0: ['int_brasil', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul', 'route_fico', 'int_cidades', 'int_bahia'],
   1: [],
-    2: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias'],
+    2: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias', 'mac_circulo'],
   3: ['bts_ferrovias', 'bts_rodovias', 'bts_circulo_fixo']
 };
 
@@ -853,6 +944,8 @@ function switchSlide(index) {
     });
   });
   updateLegend();
+  // Clear pending mancha delayed activation when switching slides
+  if (manchaTimeout) { clearTimeout(manchaTimeout); manchaTimeout = null; }
 
   // Ativar Brasil e Bahia ao entrar no slide 1
   if (index === 1) {
@@ -860,8 +953,6 @@ function switchSlide(index) {
     if (!activeLayers['int_bahia']) toggleLayer('int_bahia');
   }
 
-  // Ativar mancha verde ao entrar no slide 3 (Macrorregião)
-  if (index === 3 && !activeLayers['mac_mancha']) toggleLayer('mac_mancha');
   // Botão editar mancha visível apenas no slide 3
   var editBtn = document.getElementById('edit-mancha-btn');
   if (editBtn) editBtn.style.display = (index === 3) ? '' : 'none';
@@ -882,9 +973,38 @@ function switchSlide(index) {
     }
   }
   if (index >= 1 && index <= 4) restoreVideoOverlays(index);
-  // Auto-start presentation steps when entering slide 1 from cover
-  if (index === 1 && currentSlide === 0 && PRESENTATION_STEPS.length > 0) {
-    setTimeout(function() { startAutoPlay(); }, 500);
+  // Force the first video file for this slide (bypass any stale saved data)
+  if (index >= 1 && index <= 4 && SLIDE_VIDEOS[index]) {
+    var firstFile = SLIDE_VIDEOS[index][0];
+    var overlays = document.querySelectorAll('.video-overlay');
+    if (overlays.length === 0) {
+      createVideoOverlay(index, { file: firstFile, left: 0, top: 0 });
+    } else {
+      var video = overlays[0].querySelector('video');
+      if (video) {
+        video.src = 'videos/' + firstFile;
+        video.play().catch(function(){});
+      }
+    }
+  }
+  // Auto-start presentation steps when entering a slide that has steps defined
+  var slideHasSteps = false, slideFirstStep = -1;
+  for (var si = 0; si < PRESENTATION_STEPS.length; si++) {
+    if (PRESENTATION_STEPS[si].slide === index) {
+      slideHasSteps = true;
+      slideFirstStep = si;
+      break;
+    }
+  }
+  if (slideHasSteps && currentSlide !== index) {
+    (function(slideIdx, firstStepIdx) {
+      setTimeout(function() {
+        if (currentSlide === slideIdx) {
+          currentStep = firstStepIdx - 1;
+          startAutoPlay();
+        }
+      }, 500);
+    })(index, slideFirstStep);
   }
 
   currentSlide = index;
@@ -894,7 +1014,7 @@ function switchSlide(index) {
     toggleGallery(false);
     var savedView = null;
     try { var v = localStorage.getItem('pensarbahia_slide' + index + '_view'); if (v) savedView = JSON.parse(v); } catch(e) {}
-    if (savedView) {
+    if (savedView && index !== 3) {
       mapInstance.setView(savedView.center, savedView.zoom, { duration: 2 });
     } else if (index === 1) {
       mapInstance.flyTo([-15.0, -60.0], 4, { duration: 2 });
@@ -910,12 +1030,23 @@ function switchSlide(index) {
 }
 
 function saveCurrentMapView() {
-  if (!mapInstance || currentSlide < 1 || currentSlide > 4) return;
+  if (!mapInstance || currentSlide < 1 || currentSlide > 4 || currentSlide === 3) return;
   var c = mapInstance.getCenter();
   var z = mapInstance.getZoom();
   try {
     localStorage.setItem('pensarbahia_slide' + currentSlide + '_view', JSON.stringify({ center: [c.lat, c.lng], zoom: z }));
   } catch(e) {}
+}
+
+function lockMapView() {
+  if (!mapInstance) return;
+  mapInstance.dragging.disable();
+  mapInstance.scrollWheelZoom.disable();
+  mapInstance.touchZoom.disable();
+  mapInstance.doubleClickZoom.disable();
+  mapInstance.boxZoom.disable();
+  mapInstance.keyboard.disable();
+  if (mapInstance.tap) mapInstance.tap.disable();
 }
 
 function toggleAllLayers(pageIndex) {
@@ -954,7 +1085,7 @@ function buildGallery() {
   var html = '';
   imageKeys.forEach(function(key) {
     var filename = IMAGE_MAP[key];
-    html += '<div class="gallery-item" data-img-key="' + key + '">' +
+    html += '<div class="gallery-item gallery-hidden" data-img-key="' + key + '">' +
       '<img src="data/img/' + filename + '" alt="' + filename + '" loading="lazy">' +
       '<span class="gallery-label">' + filename + '</span>' +
       '</div>';
@@ -962,13 +1093,60 @@ function buildGallery() {
   grid.innerHTML = html;
 }
 
-function toggleGallery(open) {
+function toggleGallery(open, sequential) {
   var overlay = document.getElementById('gallery-overlay');
   if (!overlay) return;
   var isOpen = open !== undefined ? open : !overlay.classList.contains('open');
-  overlay.classList.toggle('open', isOpen);
+  
+  if (isOpen) {
+    resetGalleryReveal();
+    overlay.classList.add('open');
+    if (sequential) {
+      revealGallerySequentially(500);
+    } else {
+      document.querySelectorAll('.gallery-item').forEach(function(item) {
+        item.classList.remove('gallery-hidden');
+      });
+    }
+  } else {
+    overlay.classList.remove('open');
+    resetGalleryReveal();
+  }
+  
   var btn = document.getElementById('gallery-open-btn');
   if (btn) btn.textContent = isOpen ? 'Fechar Galeria de Imagens' : 'Abrir Galeria de Imagens';
+}
+
+function revealGallerySequentially(delay) {
+  delay = delay || 500;
+  var items = document.querySelectorAll('.gallery-item.gallery-hidden');
+  var idx = 0;
+  
+  function revealNext() {
+    if (idx >= items.length) {
+      galleryRevealTimer = null;
+      return;
+    }
+    items[idx].classList.remove('gallery-hidden');
+    idx++;
+    if (idx < items.length) {
+      galleryRevealTimer = setTimeout(revealNext, delay);
+    } else {
+      galleryRevealTimer = null;
+    }
+  }
+  
+  revealNext();
+}
+
+function resetGalleryReveal() {
+  if (galleryRevealTimer) {
+    clearTimeout(galleryRevealTimer);
+    galleryRevealTimer = null;
+  }
+  document.querySelectorAll('.gallery-item').forEach(function(item) {
+    item.classList.add('gallery-hidden');
+  });
 }
 
 /* Gallery state save/restore */
@@ -1001,7 +1179,9 @@ function restoreGalleryState() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  try { localStorage.removeItem('pensarbahia_slide3_view'); } catch(e) {}
   initMap();
+  lockMapView();
   buildPageLayers();
   buildGallery();
   initBahiaDrag();
@@ -1242,6 +1422,17 @@ document.addEventListener('keydown', function(e) {
     alert('Posi\u00e7\u00f5es dos labels salvas!');
   }
   if (e.key === 'Escape') deselectRouteLabel();
+  // Ctrl+S: save current map view for this slide
+  if (e.ctrlKey && !e.shiftKey && e.key === 's') {
+    e.preventDefault();
+    if (!mapInstance || currentSlide < 1) return;
+    var c = mapInstance.getCenter();
+    var z = mapInstance.getZoom();
+    try {
+      localStorage.setItem('pensarbahia_slide' + currentSlide + '_view', JSON.stringify({ center: [c.lat, c.lng], zoom: z }));
+    } catch(e) {}
+    alert('View do slide ' + currentSlide + ' salva!');
+  }
 });
 
 /* Wrapped initMap to add map click handler */
@@ -1270,33 +1461,92 @@ var currentStep = -1;
 var PRESENTATION_STEPS = [
   // Slide 1 — Integração Bahia-Brasil
   { slide: 1, layers: ['int_brasil', 'int_bahia'], video: '1.mp4' },
-  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli'], video: '1.mp4' },
-  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli', 'route_fiol'], video: '1.mp4' },
-  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli', 'route_fiol', 'route_transno'], video: '1.mp4' },
-  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul'], video: '1.mp4' },
-  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul', 'route_fico'], video: '1.mp4' },
-  { slide: 1, layers: ['int_brasil', 'int_bahia', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul', 'route_fico', 'int_cidades'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'int_cidades'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'int_cidades', 'route_vli'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'int_cidades', 'route_vli', 'route_fiol'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'int_cidades', 'route_vli', 'route_fiol', 'route_transno'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'int_cidades', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul'], video: '1.mp4' },
+  { slide: 1, layers: ['int_brasil', 'int_bahia', 'int_cidades', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul', 'route_fico'], video: '1.mp4' },
+
+  // Slide 3 — Macrorregião
+  { slide: 3, layers: ['mac_cidades'], video: '6.mp4' },
+  { slide: 3, layers: ['mac_cidades'], video: '6.mp4',
+    subItems: { 'mac_vias': ['RODOVIAS'] } },
+  { slide: 3, layers: ['mac_cidades'], video: '6.mp4',
+    subItems: { 'mac_vias': ['RODOVIAS', 'PONTE'] } },
+  { slide: 3, layers: ['mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4' },
+  { slide: 3, layers: ['mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4',
+    subItems: { 'mac_vias': ['RODOVIAS', 'PONTE', 'RODOVIA NAZARÉ-VALENÇA'] } },
+  { slide: 3, layers: ['mac_cidades', 'mac_vias', 'mac_ferrovias', 'mac_circulo', 'mac_mancha'], video: '8.mp4',
+    subItems: { 'mac_vias': ['RODOVIAS', 'PONTE', 'RODOVIA NAZARÉ-VALENÇA'] },
+    manchaDelay: 1500 },
+
+  // Slide 4 — Parque BTS
+  { slide: 4, layers: ['bts_circulo_fixo'], video: '9.mp4' },
+  { slide: 4, layers: ['bts_circulo_fixo', 'bts_ferrovias'], video: '9.mp4', delay: 2000 },
+  { slide: 4, layers: ['bts_circulo_fixo', 'bts_ferrovias', 'bts_rodovias'], video: '9.mp4', delay: 2000 },
 ];
 
 var slideToPagePres = {1: 0, 2: 1, 3: 2, 4: 3};
 
 var autoPlayTimer = null;
 var autoPlayDelay = 800;
+var manchaTimeout = null;
+var galleryRevealTimer = null;
 
 function startAutoPlay() {
   stopAutoPlay();
   if (currentStep >= PRESENTATION_STEPS.length - 1) return;
   var firstStep = (currentStep === -1) ? 0 : currentStep + 1;
+  var fs = PRESENTATION_STEPS[firstStep];
+  if (fs.slide !== currentSlide) return;
   goToPresentationStep(firstStep);
-  autoPlayTimer = setInterval(function() {
-    var nextIdx = currentStep + 1;
-    if (nextIdx >= PRESENTATION_STEPS.length) { stopAutoPlay(); return; }
+  scheduleNext();
+}
+
+function scheduleNext() {
+  var nextIdx = currentStep + 1;
+  if (nextIdx >= PRESENTATION_STEPS.length) { stopAutoPlay(); return; }
+  var nextStep = PRESENTATION_STEPS[nextIdx];
+  if (nextStep.slide !== currentSlide) { stopAutoPlay(); return; }
+  var curStep = PRESENTATION_STEPS[currentStep];
+  if (nextStep.video && curStep && nextStep.video !== curStep.video) {
+    stopAutoPlay();
+    return;
+  }
+  var stepDelay = nextStep.delay || autoPlayDelay;
+  autoPlayTimer = setTimeout(function() {
     goToPresentationStep(nextIdx);
-  }, autoPlayDelay);
+    scheduleNext();
+  }, stepDelay);
 }
 
 function stopAutoPlay() {
   if (autoPlayTimer) { clearInterval(autoPlayTimer); autoPlayTimer = null; }
+}
+
+function isStepLayerActive(id) {
+  var lc = getLayerConfig(id);
+  if (!lc) return false;
+  if (lc.subRoute) {
+    var mapping = ROUTE_SUB_ITEMS[id];
+    if (!mapping) return false;
+    var sl = subLayers[mapping.parentId];
+    if (!sl) return false;
+    var found = false;
+    Object.keys(sl.names).forEach(function(k) {
+      if (sl.names[k] === mapping.name && sl.active[k]) found = true;
+    });
+    return found;
+  }
+  if (lc.submenu) {
+    var sl = subLayers[id];
+    if (!sl) return false;
+    var found = false;
+    Object.keys(sl.active).forEach(function(k) { if (sl.active[k]) found = true; });
+    return found;
+  }
+  return !!activeLayers[id];
 }
 
 function goToPresentationStep(idx) {
@@ -1315,14 +1565,78 @@ function goToPresentationStep(idx) {
     var lc = getLayerConfig(id);
     if (!lc || lc.type === 'mancha') return;
     var shouldBeOn = step.layers.indexOf(id) !== -1;
-    if (shouldBeOn && !activeLayers[id]) toggleLayer(id);
-    else if (!shouldBeOn && activeLayers[id]) toggleLayer(id);
+    var isActive = isStepLayerActive(id);
+
+    // Skip submenu layers that are controlled via subItems
+    if (lc.submenu && step.subItems && step.subItems[id]) {
+      return;
+    }
+
+    if (shouldBeOn && !isActive) toggleLayer(id);
+    else if (!shouldBeOn && isActive) toggleLayer(id);
   });
 
-  // Set video file if specified in the step (only if different from current)
+  // Handle subItems for granular sub-item control
+  if (step.subItems) {
+    Object.keys(step.subItems).forEach(function(parentId) {
+      var desiredNames = step.subItems[parentId];
+      var lc = getLayerConfig(parentId);
+      if (!lc || !lc.submenu) return;
+      var sl = subLayers[parentId];
+      if (!sl) return;
+
+      // Ensure parent's map layer is on the map
+      if (mapLayers[parentId] && !mapInstance.hasLayer(mapLayers[parentId])) {
+        mapInstance.addLayer(mapLayers[parentId]);
+      }
+
+      // Toggle sub-items to match desired set
+      Object.keys(sl.names).forEach(function(k) {
+        var name = sl.names[k];
+        var shouldBeOn = desiredNames.indexOf(name) !== -1;
+        if (shouldBeOn && !sl.active[k]) {
+          toggleSubItem(parentId, k);
+        } else if (!shouldBeOn && sl.active[k]) {
+          toggleSubItem(parentId, k);
+        }
+      });
+
+      // Update parent button state
+      var anyOn = false;
+      Object.keys(sl.active).forEach(function(k) { if (sl.active[k]) anyOn = true; });
+      activeLayers[parentId] = anyOn;
+      document.querySelectorAll('.layer-btn[data-layer="' + parentId + '"]').forEach(function(btn) {
+        btn.classList.toggle('active', anyOn);
+      });
+      syncPageButtons(parentId);
+    });
+  }
+
+  // Handle mac_mancha (delayed activation via manchaDelay, immediate deactivation)
+  if (manchaTimeout) { clearTimeout(manchaTimeout); manchaTimeout = null; }
+  var manchaInLayers = step.layers.indexOf('mac_mancha') !== -1;
+  var manchaActive = isStepLayerActive('mac_mancha');
+  if (!manchaInLayers && manchaActive) {
+    toggleLayer('mac_mancha');
+  } else if (manchaInLayers && !manchaActive) {
+    var delay = (step.manchaDelay != null) ? step.manchaDelay : 0;
+    if (delay > 0) {
+      manchaTimeout = setTimeout(function() {
+        if (!isStepLayerActive('mac_mancha')) toggleLayer('mac_mancha');
+        manchaTimeout = null;
+      }, delay);
+    } else {
+      toggleLayer('mac_mancha');
+    }
+  }
+
+  // Set video file if specified in the step
   if (step.video) {
     var overlays = document.querySelectorAll('.video-overlay');
-    if (overlays.length > 0) {
+    if (overlays.length === 0) {
+      // No overlay yet — create one with this step's video
+      createVideoOverlay(step.slide, { file: step.video, left: 0, top: 0 });
+    } else {
       var video = overlays[0].querySelector('video');
       if (video) {
         var curFile = video.src.split('/').pop();
@@ -1550,56 +1864,74 @@ document.addEventListener('keydown', function(e) {
   if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
   if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT' || document.activeElement.tagName === 'TEXTAREA')) return;
 
-  // Shift+Arrow: cycle video files within current slide
+  // Shift+Arrow: navigate presentation steps
   if (e.shiftKey) {
-    if (currentSlide < 1 || currentSlide > 4) return;
-    var overlays = document.querySelectorAll('.video-overlay');
-    if (overlays.length === 0) return;
-    var slideFiles = SLIDE_VIDEOS[currentSlide];
-    if (!slideFiles || slideFiles.length < 2) return;
-    var video = overlays[0].querySelector('video');
-    if (!video) return;
-    var curFile = video.src.split('/').pop();
-    var curIdx = slideFiles.indexOf(curFile);
-    if (curIdx === -1) curIdx = 0;
+    if (PRESENTATION_STEPS.length === 0) return;
+
     if (e.key === 'ArrowRight') {
-      curIdx = (curIdx + 1) % slideFiles.length;
-    } else {
-      curIdx = (curIdx - 1 + slideFiles.length) % slideFiles.length;
+      // Stop auto-play, advance one step
+      stopAutoPlay();
+      var nextIdx = currentStep + 1;
+      if (nextIdx >= PRESENTATION_STEPS.length) { e.preventDefault(); return; }
+      goToPresentationStep(nextIdx);
+      e.preventDefault();
+      return;
     }
-    var newFile = slideFiles[curIdx];
-    video.src = 'videos/' + newFile;
-    video.play().catch(function(){});
-    console.log('SHIFT+ARROW switch to file:', newFile);
-    if (videoOverlays[currentSlide] && videoOverlays[currentSlide].length > 0) {
-      videoOverlays[currentSlide][0].file = newFile;
-      saveVideoOverlays(currentSlide);
+
+    if (e.key === 'ArrowLeft') {
+      stopAutoPlay();
+      if (currentStep === -1) { e.preventDefault(); return; }
+      var prevIdx = currentStep - 1;
+      if (prevIdx < 0) { goToPresentationStep(0); currentStep = -1; }
+      else { goToPresentationStep(prevIdx); }
+      e.preventDefault();
+      return;
     }
-    if (currentSlide === 4 && newFile === '10.mp4') { toggleGallery(true); } else if (currentSlide === 4) { toggleGallery(false); }
-    e.preventDefault();
-    return;
   }
 
-  // Plain Arrow: navigate presentation steps
-  if (PRESENTATION_STEPS.length === 0) return;
-
+  // Plain Arrow: cycle video files within current slide
+  if (currentSlide < 1 || currentSlide > 4) return;
+  var overlays = document.querySelectorAll('.video-overlay');
+  if (overlays.length === 0) return;
+  var slideFiles = SLIDE_VIDEOS[currentSlide];
+  if (!slideFiles || slideFiles.length < 2) return;
+  var video = overlays[0].querySelector('video');
+  if (!video) return;
+  var curFile = video.src.split('/').pop();
+  var curIdx = slideFiles.indexOf(curFile);
+  if (curIdx === -1) curIdx = 0;
   if (e.key === 'ArrowRight') {
-    // Right arrow: start auto-play forward (or stop if already playing)
-    if (autoPlayTimer) { stopAutoPlay(); }
-    else { startAutoPlay(); }
-    e.preventDefault();
-    return;
+    curIdx = (curIdx + 1) % slideFiles.length;
+  } else {
+    curIdx = (curIdx - 1 + slideFiles.length) % slideFiles.length;
   }
-
-  if (e.key === 'ArrowLeft') {
-    // Left arrow: stop auto-play, go back one step
-    stopAutoPlay();
-    if (currentStep === -1) return;
-    var prevIdx = currentStep - 1;
-    if (prevIdx < 0) { goToPresentationStep(0); currentStep = -1; }
-    else { goToPresentationStep(prevIdx); }
-    e.preventDefault();
+  var newFile = slideFiles[curIdx];
+  video.src = 'videos/' + newFile;
+  video.play().catch(function(){});
+  // Stop auto-play when manually cycling video
+  stopAutoPlay();
+  if (videoOverlays[currentSlide] && videoOverlays[currentSlide].length > 0) {
+    videoOverlays[currentSlide][0].file = newFile;
+    saveVideoOverlays(currentSlide);
   }
+  if (currentSlide === 4 && newFile === '10.mp4') { toggleGallery(true, true); } else if (currentSlide === 4) { toggleGallery(false); }
+  // Advance/go back presentation step to match the new video
+  if (currentStep >= 0) {
+    var bestIdx = -1;
+    for (var si = 0; si < PRESENTATION_STEPS.length; si++) {
+      var ps = PRESENTATION_STEPS[si];
+      if (ps.slide !== currentSlide) continue;
+      if (ps.video === newFile) {
+        if (bestIdx === -1 || Math.abs(si - currentStep) < Math.abs(bestIdx - currentStep)) {
+          bestIdx = si;
+        }
+      }
+    }
+    if (bestIdx >= 0 && bestIdx !== currentStep) {
+      goToPresentationStep(bestIdx);
+    }
+  }
+  e.preventDefault();
 });
 
 // Stop auto-play on any other key press
