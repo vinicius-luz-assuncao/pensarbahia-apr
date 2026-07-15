@@ -116,7 +116,7 @@ const LAYER_GROUPS = [
         labelDirections: { 'Cama\u00e7ari': 'top', 'Salvador': 'bottom', 'Aratu': 'left', 'Sim\u00f5es Filho': 'right', 'Itatim': 'top', 'Castro Alves': 'bottom', 'Santo Ant\u00f4nio de Jesus': 'left' }
       },
       {
-        id: 'mac_vias', label: 'Ferrovias e Rodovias',
+        id: 'mac_vias', label: 'Rodovias',
         file: 'data/MACRORREGI\u00c3O.geojson',
         type: 'bts', subtype: 'line', color: '#8e44ad', submenu: true, noPageButton: true,
         featureNames: {
@@ -126,7 +126,7 @@ const LAYER_GROUPS = [
           },
           'Santo Ant\u00f4nio de Jesus \u2192 Salvador': {
             ids: ['V5L02', 'R2tzk', 'f9f2j', 'Ijxca', 'IWkVr', 'xQTJu', 'EkGci', 'AuzGI'],
-            label: 'PONTE', color: '#3498db', weight: 5
+            label: 'PONTE', color: '#2ecc71', weight: 5
           },
           'Nazar\u00e9 \u2192 Valen\u00e7a': {
             ids: ['nazare_valenca'],
