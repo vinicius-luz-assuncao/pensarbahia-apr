@@ -1915,8 +1915,6 @@ document.addEventListener('keydown', function(e) {
   }
   
   var overlays = document.querySelectorAll('.video-overlay');
-  
-  var overlays = document.querySelectorAll('.video-overlay');
   if (overlays.length === 0) return;
   var slideFiles = SLIDE_VIDEOS[currentSlide];
   if (!slideFiles || slideFiles.length < 2) return;
@@ -1956,11 +1954,12 @@ document.addEventListener('keydown', function(e) {
       goToPresentationStep(bestIdx);
     } else if (bestIdx === -1) {
       // No step matches this video — activate all layers for this slide
-      var lastStep = -1;
-      for (var si = 0; si < PRESENTATION_STEPS.length; si++) {
-        if (PRESENTATION_STEPS[si].slide === currentSlide) lastStep = si;
-      }
-      if (lastStep >= 0) goToPresentationStep(lastStep);
+      // without changing the video (goToPresentationStep would overwrite it)
+      var pageKey = slideToPagePres[currentSlide];
+      var allIds = PAGE_LAYER_MAP[pageKey] || [];
+      allIds.forEach(function(id) {
+        if (!isStepLayerActive(id)) toggleLayer(id);
+      });
     }
   }
   e.preventDefault();
