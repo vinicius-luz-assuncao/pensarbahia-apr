@@ -1319,14 +1319,17 @@ function goToPresentationStep(idx) {
     else if (!shouldBeOn && activeLayers[id]) toggleLayer(id);
   });
 
-  // Set video file if specified in the step
+  // Set video file if specified in the step (only if different from current)
   if (step.video) {
     var overlays = document.querySelectorAll('.video-overlay');
     if (overlays.length > 0) {
       var video = overlays[0].querySelector('video');
       if (video) {
-        video.src = 'videos/' + step.video;
-        video.play().catch(function(){});
+        var curFile = video.src.split('/').pop();
+        if (curFile !== step.video) {
+          video.src = 'videos/' + step.video;
+          video.play().catch(function(){});
+        }
       }
     }
   }
