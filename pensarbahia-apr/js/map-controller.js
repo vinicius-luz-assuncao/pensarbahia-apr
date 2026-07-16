@@ -266,37 +266,12 @@ function loadLayer(lc) {
 
             var circle = L.circle(center, { radius: radius, color: color, weight: lc.weight || 2, fillColor: color, fillOpacity: 0.08 });
 
-            function getRightEdge(c, r) {
-              var R = 6371000;
-              var lat = c.lat * Math.PI / 180;
-              var d = r / R;
-              return L.latLng(c.lat, c.lng + d / Math.cos(lat) * 180 / Math.PI);
-            }
-
-            var resizer = L.marker(getRightEdge(center, radius), {
-              icon: L.divIcon({
-                className: 'circle-resize-handle',
-                html: '<div style="width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid ' + color + ';cursor:nesw-resize;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
-                iconSize: [14, 14],
-                iconAnchor: [7, 7]
-              }),
-              draggable: true
-            });
-
-            resizer._circleData = { id: cfg.id };
-
             function saveCircle() {
               var c = circle.getLatLng();
               var r = circle.getRadius();
               try {
                 localStorage.setItem('pensarbahia_circle_' + cfg.id, JSON.stringify({ center: [c.lat, c.lng], radius: r }));
               } catch(e) {}
-            }
-
-            function updateResizer() {
-              var c = circle.getLatLng();
-              var r = circle.getRadius();
-              resizer.setLatLng(getRightEdge(c, r));
             }
 
             var dragging = false, dragStart = null, origCenter = null;
@@ -314,7 +289,6 @@ function loadLayer(lc) {
               var lat = origCenter.lat + (e.latlng.lat - dragStart.lat);
               var lng = origCenter.lng + (e.latlng.lng - dragStart.lng);
               circle.setLatLng([lat, lng]);
-              updateResizer();
             });
 
             mapInstance.on('mouseup', function() {
@@ -325,28 +299,7 @@ function loadLayer(lc) {
               }
             });
 
-            resizer.on('drag', function() {
-              var c = circle.getLatLng();
-              var p = resizer.getLatLng();
-              var R = 6371000;
-              var lat1 = c.lat * Math.PI / 180;
-              var lng1 = c.lng * Math.PI / 180;
-              var lat2 = p.lat * Math.PI / 180;
-              var lng2 = p.lng * Math.PI / 180;
-              var dlat = lat2 - lat1;
-              var dlng = lng2 - lng1;
-              var a = Math.sin(dlat/2) * Math.sin(dlat/2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlng/2) * Math.sin(dlng/2);
-              var dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-              circle.setRadius(Math.max(dist, 100));
-            });
-
-            resizer.on('dragend', function() {
-              saveCircle();
-              updateResizer();
-            });
-
             group.addLayer(circle);
-            group.addLayer(resizer);
           })(cfg);
         });
         mapLayers[lc.id] = group;
@@ -1236,73 +1189,16 @@ function dimLayer(id, opacity) {
   });
 }
 
-function eachGeoJSONLayer(item, fn) {
-  if (!item || !item.eachLayer) return;
-  item.eachLayer(function(sub) {
-    if (sub && sub.eachLayer && typeof sub.setStyle === 'function') {
-      sub.eachLayer(function(l) {
-        if (l.setStyle) fn(l);
-      });
-    }
-  });
-}
-
-function saveSubItemOptions(parentId) {
-  var sl = subLayers[parentId];
-  if (!sl) return;
-  _savedOptions[parentId] = {};
-  Object.keys(sl.items).forEach(function(itemId) {
-    _savedOptions[parentId][itemId] = [];
-    eachGeoJSONLayer(sl.items[itemId], function(l) {
-      _savedOptions[parentId][itemId].push({ opacity: l.options.opacity, fillOpacity: l.options.fillOpacity });
-    });
-  });
-}
-
-function restoreSubItemOptions(parentId) {
-  var saved = _savedOptions[parentId];
-  if (!saved) return;
-  var sl = subLayers[parentId];
-  if (!sl) return;
-  Object.keys(sl.items).forEach(function(itemId) {
-    var opts = saved[itemId];
-    if (!opts) return;
-    var idx = 0;
-    eachGeoJSONLayer(sl.items[itemId], function(l) {
-      if (idx < opts.length) { l.setStyle(opts[idx]); idx++; }
-    });
-  });
-  delete _savedOptions[parentId];
-}
-
-function dimSubItems(parentId, opacity) {
-  var sl = subLayers[parentId];
-  if (!sl) return;
-  Object.keys(sl.items).forEach(function(itemId) {
-    eachGeoJSONLayer(sl.items[itemId], function(l) {
-      l.setStyle({ opacity: opacity });
-    });
-  });
-}
-
 function enableSubpageMode() {
   mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
 
-  // Show macrorregião layers and dim them
-  ['mac_mancha', 'mac_ferrovias', 'mac_vias'].forEach(function(id) {
-    if (!activeLayers[id]) {
-      toggleLayer(id);
-      _wasToggledBySubpage[id] = true;
-    }
-    if (id !== 'mac_vias') {
-      saveLayerOptions(id);
-      dimLayer(id, 0.12);
-    }
-  });
-
-  // Dim sub-items of mac_vias
-  saveSubItemOptions('mac_vias');
-  dimSubItems('mac_vias', 0.15);
+  // Show only mancha layer (dimmed) for geographic context
+  if (!activeLayers['mac_mancha']) {
+    toggleLayer('mac_mancha');
+    _wasToggledBySubpage['mac_mancha'] = true;
+  }
+  saveLayerOptions('mac_mancha');
+  dimLayer('mac_mancha', 0.04);
 
   // Show subpage circles
   if (!activeLayers['subpage_circles']) {
@@ -1318,17 +1214,13 @@ function disableSubpageMode() {
     delete _wasToggledBySubpage['subpage_circles'];
   }
 
-  // Restore or hide macrorregião layers
-  ['mac_mancha', 'mac_ferrovias', 'mac_vias'].forEach(function(id) {
-    if (_wasToggledBySubpage[id]) {
-      toggleLayer(id);
-      delete _wasToggledBySubpage[id];
-    } else {
-      if (id !== 'mac_vias') restoreLayerOptions(id);
-    }
-  });
-
-  restoreSubItemOptions('mac_vias');
+  // Restore or hide mancha layer
+  if (_wasToggledBySubpage['mac_mancha']) {
+    toggleLayer('mac_mancha');
+    delete _wasToggledBySubpage['mac_mancha'];
+  } else {
+    restoreLayerOptions('mac_mancha');
+  }
 
   mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
 }
