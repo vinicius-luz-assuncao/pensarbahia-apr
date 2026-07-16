@@ -1396,6 +1396,8 @@ function toggleCiaNorte(open) {
   var isOpen = open !== undefined ? open : !overlay.classList.contains('open');
   overlay.classList.toggle('open', isOpen);
   if (backdrop) backdrop.classList.toggle('open', isOpen);
+  var legend = document.querySelector('.map-legend');
+  if (legend) legend.style.display = isOpen ? 'none' : '';
 }
 
 function toggleGallery(open, sequential) {
