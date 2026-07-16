@@ -1256,6 +1256,9 @@ function dimSubItems(parentId, opacity) {
 }
 
 function enableSubpageMode() {
+  // Enable map interaction immediately
+  unlockMapView();
+
   // Restore saved subpage view or fly to default
   var savedSubpageView = null;
   try { var sv = localStorage.getItem('pensarbahia_subpage_view'); if (sv) savedSubpageView = JSON.parse(sv); } catch(e) {}
@@ -1305,31 +1308,16 @@ function enableSubpageMode() {
         var zoom = i < 5 ? 12 : 13;
         var timer = setTimeout(function() {
           mapInstance.addLayer(circle);
-          var c = circle.getLatLng();
-          mapInstance.flyTo(c, zoom, { duration: 1.5 });
           circle.openTooltip();
           var closeTimer = setTimeout(function() { circle.closeTooltip(); }, 1500);
           _staggerTimers.push(closeTimer);
         }, delay);
         _staggerTimers.push(timer);
       });
-      // Return to full macrorregião view after last circle
-      var totalDelay = (5 * blueDelay) + (6 * pinkDelay) + 800;
-      var returnTimer = setTimeout(function() {
-        var sv;
-        try { sv = JSON.parse(localStorage.getItem('pensarbahia_subpage_view')); } catch(e) {}
-        if (sv) {
-          mapInstance.setView(sv.center, sv.zoom);
-        } else {
-          mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
-        }
-      }, totalDelay);
-      _staggerTimers.push(returnTimer);
     }
   }
 
-  // Enable map interaction + save position on move
-  unlockMapView();
+  // Save position on map move
   mapInstance.on('moveend', saveSubpageView);
 }
 
