@@ -2208,7 +2208,7 @@ document.addEventListener('keydown', function(e) {
   }
   if (currentSlide === 4) {
     if (newFile === '10.mp4') { toggleGallery(true, true); disableSubpageMode(); }
-    else if (newFile === '11.mp4') { toggleGallery(false); enableSubpageMode(); }
+    else if (newFile === '11.mp4') { toggleGallery(false); currentStep = -1; enableSubpageMode(); }
     else { toggleGallery(false); disableSubpageMode(); }
   }
   // Advance/go back presentation step to match the new video
