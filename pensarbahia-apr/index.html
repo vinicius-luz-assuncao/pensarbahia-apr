@@ -53,8 +53,9 @@
     <button class="slide-tab" data-slide="1">&#x1F30D; Integra&ccedil;&atilde;o Bahia - Brasil</button>
     <button class="slide-tab" data-slide="2">&#x1F4CD; Bahia</button>
     <button class="slide-tab" data-slide="3">&#x1F4CD; Macrorregi&atilde;o</button>
-    <button class="slide-tab" data-slide="4">&#x1F333; Parque Log&iacute;stico da BTS</button>
-  </div>
+     <button class="slide-tab" data-slide="4">&#x1F333; Parque Log&iacute;stico da BTS</button>
+     <button class="slide-tab" data-slide="5">&#x1F4CA; &Aacute;reas Cont&iacute;guas</button>
+   </div>
 
   <div class="slide-body">
     <!-- Slide 1: Integração Bahia - Brasil -->
@@ -88,10 +89,16 @@
       <p class="slide-subtitle">Ferrovias e rodovias do parque log&iacute;stico da BTS</p>
       <div class="page-layers" data-page="3"></div>
       <button class="toggle-all-btn" data-page="3">Selecionar todos</button>
-      <button class="gallery-open-btn" id="gallery-open-btn">Abrir Galeria de Imagens</button>
-    </div>
-  </div>
-</div>
+       <button class="gallery-open-btn" id="gallery-open-btn">Abrir Galeria de Imagens</button>
+     </div>
+
+     <!-- Slide 5: Áreas Contíguas -->
+     <div class="slide-page" data-slide="5">
+       <h1 class="slide-title">&Aacute;reas Cont&iacute;guas Dispon&iacute;veis Complexo Log&iacute;stico CIA</h1>
+       <p class="slide-subtitle">Clique nas setas para navegar entre as imagens</p>
+     </div>
+   </div>
+ </div>
 
 <!-- ====== GALERIA FLUTUANTE (sobre o mapa) ====== -->
 <div class="gallery-overlay" id="gallery-overlay">
@@ -118,12 +125,16 @@
   <div class="map-container-wrapper">
     <div id="map-container"></div>
 
-    <div id="bahia-fullscreen" class="bahia-fullscreen">
-      <div class="bahia-drag-container" id="bahia-drag-container">
-        <img src="data/img/Design sem nome (9).png" alt="Mapa Interativo Bahia" id="bahia-drag-img">
-      </div>
-    </div>
-    <div id="map-loading">
+     <div id="bahia-fullscreen" class="bahia-fullscreen">
+       <div class="bahia-drag-container" id="bahia-drag-container">
+         <img src="data/img/Design sem nome (9).png" alt="Mapa Interativo Bahia" id="bahia-drag-img">
+       </div>
+     </div>
+     <div id="areas-fullscreen" class="areas-fullscreen" style="display:none">
+       <img id="areas-img" src="" alt="Áreas Contíguas">
+       <span id="areas-counter"></span>
+     </div>
+     <div id="map-loading">
       <div class="spinner"></div>
       <div class="load-text">Carregando mapa interativo...</div>
     </div>

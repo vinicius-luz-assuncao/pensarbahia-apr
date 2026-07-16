@@ -880,11 +880,12 @@ const PAGE_LAYER_MAP = {
   0: ['int_brasil', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul', 'route_fico', 'int_cidades', 'int_bahia'],
   1: [],
     2: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias', 'mac_circulo'],
-  3: ['bts_ferrovias', 'bts_rodovias', 'bts_circulo_fixo']
+  3: ['bts_ferrovias', 'bts_rodovias', 'bts_circulo_fixo'],
+  4: []
 };
 
 function buildPageLayers() {
-  [0, 1, 2, 3].forEach(function(pageIdx) {
+  [0, 1, 2, 3, 4].forEach(function(pageIdx) {
     var container = document.querySelector('.page-layers[data-page="' + pageIdx + '"]');
     if (!container) return;
     var ids = PAGE_LAYER_MAP[pageIdx] || [];
@@ -954,8 +955,16 @@ function switchSlide(index) {
   var bahiaFS = document.getElementById('bahia-fullscreen');
   if (bahiaFS) bahiaFS.classList.toggle('active', index === 2);
 
+  // Areas fullscreen image toggle
+  var areasFS = document.getElementById('areas-fullscreen');
+  if (areasFS) areasFS.classList.toggle('active', index === 5);
+
+  // Sidebar toggle visibility
+  var sidebarToggle = document.getElementById('sidebar-toggle');
+  if (sidebarToggle) sidebarToggle.style.display = (index === 5) ? 'none' : '';
+
   // Desativar camadas da página anterior
-  var slideToPage = {0: 0, 1: 0, 2: 1, 3: 2, 4: 3};
+  var slideToPage = {0: 0, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4};
   var prevPageKey = slideToPage[currentSlide];
   var prevIds = PAGE_LAYER_MAP[prevPageKey] || [];
   prevIds.forEach(function(id) {
@@ -1014,6 +1023,14 @@ function switchSlide(index) {
       }
     }
   }
+  // Slide 5: show first image
+  if (index === 5) {
+    var areasImg = document.getElementById('areas-img');
+    if (areasImg) {
+      areasImg.src = 'data/img/' + SLIDE_VIDEOS[5][0];
+      updateAreasCounter(0);
+    }
+  }
   // Auto-start presentation steps when entering a slide that has steps defined
   var slideHasSteps = false, slideFirstStep = -1;
   for (var si = 0; si < PRESENTATION_STEPS.length; si++) {
@@ -1051,13 +1068,15 @@ function switchSlide(index) {
       mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
     } else if (index === 4) {
       mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
+    } else if (index === 5) {
+      mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
     }
     setTimeout(function() { mapInstance.invalidateSize(); }, 200);
   }
 }
 
 function saveCurrentMapView() {
-  if (!mapInstance || currentSlide < 1 || currentSlide > 4 || currentSlide === 3) return;
+  if (!mapInstance || currentSlide < 1 || currentSlide > 5 || currentSlide === 3 || currentSlide === 5) return;
   var c = mapInstance.getCenter();
   var z = mapInstance.getZoom();
   try {
@@ -1473,7 +1492,8 @@ var SLIDE_VIDEOS = {
   1: ['1.mp4','2.mp4'],
   2: ['3.mp4','4.mp4','5.mp4'],
   3: ['6.mp4','7.mp4','8.mp4'],
-  4: ['9.mp4','10.mp4','11.mp4']
+  4: ['9.mp4','10.mp4','11.mp4'],
+  5: ['1.png','2.png','3.png','4.png','5.png','6.png']
 };
 var videoOverlays = {};
 
@@ -1510,7 +1530,7 @@ var PRESENTATION_STEPS = [
   { slide: 4, layers: ['bts_circulo_fixo', 'bts_ferrovias', 'bts_rodovias'], video: '9.mp4', delay: 2000 },
 ];
 
-var slideToPagePres = {1: 0, 2: 1, 3: 2, 4: 3};
+var slideToPagePres = {1: 0, 2: 1, 3: 2, 4: 3, 5: 4};
 
 var autoPlayTimer = null;
 var autoPlayDelay = 800;
@@ -1882,6 +1902,11 @@ function restoreVideoOverlays(slideIdx) {
   } catch(e) { console.error('RESTORE error:', e, 'slide:', slideIdx); videoOverlays[slideIdx] = []; }
 }
 
+function updateAreasCounter(idx) {
+  var counter = document.getElementById('areas-counter');
+  if (counter) counter.textContent = (idx + 1) + ' / ' + SLIDE_VIDEOS[5].length;
+}
+
 /* Arrow keys: navigate presentation steps. Shift+Arrow: cycle videos */
 document.addEventListener('keydown', function(e) {
   if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
@@ -1890,6 +1915,7 @@ document.addEventListener('keydown', function(e) {
   // Shift+Arrow: navigate presentation steps
   if (e.shiftKey) {
     if (PRESENTATION_STEPS.length === 0) return;
+    if (currentSlide === 5) return;
 
     if (e.key === 'ArrowRight') {
       // Stop auto-play, advance one step
@@ -1912,12 +1938,32 @@ document.addEventListener('keydown', function(e) {
     }
   }
 
+  // Slide 5: cycle images
+  if (currentSlide === 5) {
+    var areasImg = document.getElementById('areas-img');
+    if (!areasImg || !areasImg.src) return;
+    var slideFiles = SLIDE_VIDEOS[5];
+    if (!slideFiles || slideFiles.length === 0) return;
+    var curFile = areasImg.src.split('/').pop();
+    var curIdx = slideFiles.indexOf(curFile);
+    if (curIdx === -1) curIdx = 0;
+    if (e.key === 'ArrowRight') {
+      curIdx = (curIdx + 1) % slideFiles.length;
+    } else {
+      curIdx = (curIdx - 1 + slideFiles.length) % slideFiles.length;
+    }
+    areasImg.src = 'data/img/' + slideFiles[curIdx];
+    updateAreasCounter(curIdx);
+    e.preventDefault();
+    return;
+  }
+
   // Plain Arrow: cycle video files within current slide
   if (currentSlide < 1 || currentSlide > 4) return;
   
   // After last video of slide, right arrow goes to next slide
   if (e.key === 'ArrowRight') {
-    var slideLastVideo = { 1: '2.mp4', 2: '5.mp4', 3: '8.mp4' };
+    var slideLastVideo = { 1: '2.mp4', 2: '5.mp4', 3: '8.mp4', 4: '11.mp4' };
     var lastVid = slideLastVideo[currentSlide];
     if (lastVid) {
       var curVid = document.querySelectorAll('.video-overlay');

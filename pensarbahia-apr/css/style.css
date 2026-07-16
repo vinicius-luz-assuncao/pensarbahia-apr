@@ -864,6 +864,40 @@ html, body {
 }
 .bahia-fullscreen.active { display: block; }
 
+.areas-fullscreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 500;
+  display: none;
+  background: #000;
+  align-items: center;
+  justify-content: center;
+}
+.areas-fullscreen.active {
+  display: flex;
+}
+.areas-fullscreen img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+#areas-counter {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0,0,0,.8);
+  background: rgba(0,0,0,.5);
+  padding: 4px 14px;
+  border-radius: 12px;
+}
+
 .bahia-drag-container {
   width: 100%;
   height: 100%;
