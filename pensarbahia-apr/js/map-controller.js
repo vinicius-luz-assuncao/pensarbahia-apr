@@ -1491,6 +1491,71 @@ document.addEventListener('DOMContentLoaded', function() {
     switchSlide(1);
   });
 
+  // Drag and resize for cover button
+  (function() {
+    var btn = document.getElementById('cover-start');
+    var resizeHandle = document.createElement('div');
+    resizeHandle.style.cssText = 'position:absolute;bottom:0;right:0;width:16px;height:16px;cursor:nwse-resize;background:rgba(255,255,255,.4);border-radius:0 0 var(--radius-md) 0';
+    btn.style.position = 'relative';
+    btn.appendChild(resizeHandle);
+
+    var dragData = null;
+    var resizeData = null;
+
+    btn.addEventListener('mousedown', function(e) {
+      if (e.target === resizeHandle) return;
+      e.preventDefault();
+      var rect = btn.getBoundingClientRect();
+      dragData = { startX: e.clientX, startY: e.clientY, origLeft: btn.offsetLeft, origTop: btn.offsetTop };
+    });
+
+    resizeHandle.addEventListener('mousedown', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      resizeData = { startX: e.clientX, startY: e.clientY, origW: btn.offsetWidth, origH: btn.offsetHeight, origFont: parseFloat(getComputedStyle(btn).fontSize) };
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (dragData) {
+        var dx = e.clientX - dragData.startX, dy = e.clientY - dragData.startY;
+        btn.style.marginTop = '0';
+        btn.style.position = 'fixed';
+        btn.style.left = (dragData.origLeft + dx) + 'px';
+        btn.style.top = (dragData.origTop + dy) + 'px';
+        // persist
+        localStorage.setItem('pensarbahia_cover_btn_x', btn.style.left);
+        localStorage.setItem('pensarbahia_cover_btn_y', btn.style.top);
+      }
+      if (resizeData) {
+        var dw = e.clientX - resizeData.startX, dh = e.clientY - resizeData.startY;
+        var newW = Math.max(120, resizeData.origW + dw);
+        var newH = Math.max(40, resizeData.origH + dh);
+        var scale = newW / resizeData.origW;
+        btn.style.width = newW + 'px';
+        btn.style.height = newH + 'px';
+        btn.style.fontSize = (resizeData.origFont * scale) + 'px';
+        localStorage.setItem('pensarbahia_cover_btn_w', btn.style.width);
+        localStorage.setItem('pensarbahia_cover_btn_h', btn.style.height);
+        localStorage.setItem('pensarbahia_cover_btn_fs', btn.style.fontSize);
+      }
+    });
+
+    document.addEventListener('mouseup', function() { dragData = null; resizeData = null; });
+
+    // restore persisted state
+    var sx = localStorage.getItem('pensarbahia_cover_btn_x');
+    var sy = localStorage.getItem('pensarbahia_cover_btn_y');
+    if (sx && sy) {
+      btn.style.marginTop = '0';
+      btn.style.position = 'fixed';
+      btn.style.left = sx;
+      btn.style.top = sy;
+    }
+    var sw = localStorage.getItem('pensarbahia_cover_btn_w');
+    var sh = localStorage.getItem('pensarbahia_cover_btn_h');
+    var sf = localStorage.getItem('pensarbahia_cover_btn_fs');
+    if (sw && sh && sf) { btn.style.width = sw; btn.style.height = sh; btn.style.fontSize = sf; }
+  })();
+
   document.getElementById('cover-return').addEventListener('click', function() {
     switchSlide(0);
   });
