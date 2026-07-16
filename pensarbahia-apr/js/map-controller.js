@@ -2028,7 +2028,7 @@ function goToPresentationStep(idx) {
 
   // Open CIA NORTE gallery after last step of slide 4, video 9
   if (step.slide === 4 && step.video === '9.mp4' && step.layers.indexOf('bts_rodovias') !== -1) {
-    setTimeout(function() { toggleCiaNorte(true); }, 500);
+    setTimeout(function() { toggleCiaNorte(true); }, 3000);
   }
 
   currentStep = idx;
