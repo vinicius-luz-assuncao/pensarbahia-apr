@@ -265,7 +265,8 @@ function loadLayer(lc) {
             var color = cfg.color || '#3498db';
 
             var circle = L.circle(center, { radius: radius, color: color, weight: lc.weight || 2, fillColor: color, fillOpacity: 0.08 });
-            circle.bindTooltip(cfg.color === '#3498db' ? 'Centro de atração' : 'Polos e terminais', { permanent: true, direction: 'top', className: 'circle-label' });
+            var labelType = cfg.color === '#3498db' ? 'blue' : 'pink';
+            circle.bindTooltip(cfg.color === '#3498db' ? 'Centro de atração' : 'Polos e terminais', { permanent: false, direction: 'top', className: 'circle-label circle-label-' + labelType, offset: [0, -8] });
 
             function saveCircle() {
               var c = circle.getLatLng();
@@ -1285,6 +1286,9 @@ function enableSubpageMode() {
           mapInstance.addLayer(circle);
           var c = circle.getLatLng();
           mapInstance.flyTo(c, zoom, { duration: 1.5 });
+          circle.openTooltip();
+          var closeTimer = setTimeout(function() { circle.closeTooltip(); }, 1500);
+          _staggerTimers.push(closeTimer);
         }, delay);
         _staggerTimers.push(timer);
       });

@@ -1082,13 +1082,44 @@ html, body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  background: rgba(26,58,92,0.9);
   color: #fff;
   border: none;
   border-radius: 4px;
   padding: 3px 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
   white-space: nowrap;
+}
+.circle-label-blue {
+  background: #3498db !important;
+  border-color: #3498db !important;
+}
+.circle-label-blue.leaflet-tooltip-top::before {
+  border-top-color: #3498db !important;
+}
+.circle-label-blue.leaflet-tooltip-bottom::before {
+  border-bottom-color: #3498db !important;
+}
+.circle-label-blue.leaflet-tooltip-left::before {
+  border-left-color: #3498db !important;
+}
+.circle-label-blue.leaflet-tooltip-right::before {
+  border-right-color: #3498db !important;
+}
+.circle-label-pink {
+  background: #e91e93 !important;
+  border-color: #e91e93 !important;
+}
+.circle-label-pink.leaflet-tooltip-top::before {
+  border-top-color: #e91e93 !important;
+}
+.circle-label-pink.leaflet-tooltip-bottom::before {
+  border-bottom-color: #e91e93 !important;
+}
+.circle-label-pink.leaflet-tooltip-left::before {
+  border-left-color: #e91e93 !important;
+}
+.circle-label-pink.leaflet-tooltip-right::before {
+  border-right-color: #e91e93 !important;
 }
 
 
