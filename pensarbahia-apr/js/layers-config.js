@@ -199,6 +199,33 @@ const LAYER_GROUPS = [
     ]
   },
   {
+    id: 'subpage',
+    label: 'Subp\u00e1gina',
+    icon: '\u{1F9EA}',
+    expanded: false,
+    layers: [
+      {
+        id: 'subpage_circles',
+        label: 'C\u00edrculos (azul: cidades, rosa: portos)',
+        type: 'circle-group',
+        weight: 2,
+        circles: [
+          { id: 'circ_fsa', label: 'Feira de Santana', center: [-12.2667, -38.9667], radius: 5000, color: '#3498db' },
+          { id: 'circ_alagoinhas', label: 'Alagoinhas', center: [-12.1333, -38.4167], radius: 5000, color: '#3498db' },
+          { id: 'circ_camacari', label: 'Cama\u00e7ari', center: [-12.6979, -38.3241], radius: 5000, color: '#3498db' },
+          { id: 'circ_aratu', label: 'Aratu', center: [-12.7833, -38.4667], radius: 5000, color: '#3498db' },
+          { id: 'circ_salvador', label: 'Salvador', center: [-12.9714, -38.5014], radius: 5000, color: '#3498db' },
+          { id: 'circ_porto_salvador', label: 'Porto de Salvador', center: [-12.9700, -38.5117], radius: 3000, color: '#e91e93' },
+          { id: 'circ_porto_aratu', label: 'Terminal Aratu', center: [-12.8000, -38.4833], radius: 3000, color: '#e91e93' },
+          { id: 'circ_porto_madre', label: 'Madre Deus', center: [-12.7333, -38.6167], radius: 3000, color: '#e91e93' },
+          { id: 'circ_porto_candeias', label: 'Candeias', center: [-12.7833, -38.4833], radius: 3000, color: '#e91e93' },
+          { id: 'circ_porto_saoroque', label: 'S\u00e3o Roque', center: [-12.6167, -38.6833], radius: 3000, color: '#e91e93' },
+          { id: 'circ_porto_itaparica', label: 'Itaparica', center: [-12.8833, -38.6833], radius: 3000, color: '#e91e93' }
+        ]
+      }
+    ]
+  },
+  {
     id: 'infra',
     label: 'Infraestrutura',
     icon: '\u{1F3D7}\uFE0F',

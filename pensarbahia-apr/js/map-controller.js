@@ -253,6 +253,107 @@ function loadLayer(lc) {
         if (activeLayers[lc.id]) mapInstance.addLayer(group);
       })(lc);
       break;
+    case 'circle-group':
+      (function(lc) {
+        var group = L.layerGroup();
+        lc.circles.forEach(function(cfg) {
+          (function(cfg) {
+            var saved = null;
+            try { saved = JSON.parse(localStorage.getItem('pensarbahia_circle_' + cfg.id)); } catch(e) {}
+            var center = saved && saved.center ? L.latLng(saved.center[0], saved.center[1]) : L.latLng(cfg.center[0], cfg.center[1]);
+            var radius = (saved && saved.radius != null) ? saved.radius : cfg.radius;
+            var color = cfg.color || '#3498db';
+
+            var circle = L.circle(center, { radius: radius, color: color, weight: lc.weight || 2, fillColor: color, fillOpacity: 0.08 });
+
+            function getRightEdge(c, r) {
+              var R = 6371000;
+              var lat = c.lat * Math.PI / 180;
+              var d = r / R;
+              return L.latLng(c.lat, c.lng + d / Math.cos(lat) * 180 / Math.PI);
+            }
+
+            var resizer = L.marker(getRightEdge(center, radius), {
+              icon: L.divIcon({
+                className: 'circle-resize-handle',
+                html: '<div style="width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid ' + color + ';cursor:nesw-resize;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+              }),
+              draggable: true
+            });
+
+            resizer._circleData = { id: cfg.id };
+
+            function saveCircle() {
+              var c = circle.getLatLng();
+              var r = circle.getRadius();
+              try {
+                localStorage.setItem('pensarbahia_circle_' + cfg.id, JSON.stringify({ center: [c.lat, c.lng], radius: r }));
+              } catch(e) {}
+            }
+
+            function updateResizer() {
+              var c = circle.getLatLng();
+              var r = circle.getRadius();
+              resizer.setLatLng(getRightEdge(c, r));
+            }
+
+            var dragging = false, dragStart = null, origCenter = null;
+            circle.on('mousedown', function(e) {
+              if (e.originalEvent.button !== 0) return;
+              dragging = true;
+              dragStart = e.latlng;
+              origCenter = circle.getLatLng();
+              if (mapInstance.dragging) mapInstance.dragging.disable();
+              L.DomEvent.stopPropagation(e.originalEvent);
+            });
+
+            mapInstance.on('mousemove', function(e) {
+              if (!dragging) return;
+              var lat = origCenter.lat + (e.latlng.lat - dragStart.lat);
+              var lng = origCenter.lng + (e.latlng.lng - dragStart.lng);
+              circle.setLatLng([lat, lng]);
+              updateResizer();
+            });
+
+            mapInstance.on('mouseup', function() {
+              if (dragging) {
+                dragging = false;
+                if (mapInstance.dragging) mapInstance.dragging.enable();
+                saveCircle();
+              }
+            });
+
+            resizer.on('drag', function() {
+              var c = circle.getLatLng();
+              var p = resizer.getLatLng();
+              var R = 6371000;
+              var lat1 = c.lat * Math.PI / 180;
+              var lng1 = c.lng * Math.PI / 180;
+              var lat2 = p.lat * Math.PI / 180;
+              var lng2 = p.lng * Math.PI / 180;
+              var dlat = lat2 - lat1;
+              var dlng = lng2 - lng1;
+              var a = Math.sin(dlat/2) * Math.sin(dlat/2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlng/2) * Math.sin(dlng/2);
+              var dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+              circle.setRadius(Math.max(dist, 100));
+            });
+
+            resizer.on('dragend', function() {
+              saveCircle();
+              updateResizer();
+            });
+
+            group.addLayer(circle);
+            group.addLayer(resizer);
+          })(cfg);
+        });
+        mapLayers[lc.id] = group;
+        group._isCircleLayer = true;
+        if (activeLayers[lc.id]) mapInstance.addLayer(group);
+      })(lc);
+      break;
     case 'mancha':
       var saved = null;
       try { saved = JSON.parse(localStorage.getItem('pensarbahia_mancha_ctrl')); } catch(e) {}
@@ -997,6 +1098,8 @@ function switchSlide(index) {
   syncVideoOverlayState(currentSlide);
   saveVideoOverlays(currentSlide);
   document.querySelectorAll('.video-overlay').forEach(function(v) { v.remove(); });
+  // Disable subpage mode when leaving slide 4
+  if (currentSlide === 4) { disableSubpageMode(); }
   // Save Bahia image position when leaving slide 2
   if (currentSlide === 2) {
     var container = document.getElementById('bahia-drag-container');
@@ -1093,6 +1196,141 @@ function lockMapView() {
   mapInstance.boxZoom.disable();
   mapInstance.keyboard.disable();
   if (mapInstance.tap) mapInstance.tap.disable();
+}
+
+/* ============================================================
+   SUBPAGE MODE — Slide 4 video 11
+   ============================================================ */
+var _savedOptions = {};
+var _wasToggledBySubpage = {};
+
+function saveLayerOptions(id) {
+  _savedOptions[id] = [];
+  var layer = mapLayers[id];
+  if (!layer) return;
+  layer.eachLayer(function(l) {
+    _savedOptions[id].push({ opacity: l.options.opacity, fillOpacity: l.options.fillOpacity });
+  });
+}
+
+function restoreLayerOptions(id) {
+  var saved = _savedOptions[id];
+  if (!saved) return;
+  var idx = 0;
+  var layer = mapLayers[id];
+  if (!layer) return;
+  layer.eachLayer(function(l) {
+    if (idx < saved.length && l.setStyle) {
+      l.setStyle(saved[idx]);
+      idx++;
+    }
+  });
+  delete _savedOptions[id];
+}
+
+function dimLayer(id, opacity) {
+  var layer = mapLayers[id];
+  if (!layer) return;
+  layer.eachLayer(function(l) {
+    if (l.setStyle) l.setStyle({ opacity: opacity, fillOpacity: opacity * 0.3 });
+  });
+}
+
+function eachGeoJSONLayer(item, fn) {
+  if (!item || !item.eachLayer) return;
+  item.eachLayer(function(sub) {
+    if (sub && sub.eachLayer && typeof sub.setStyle === 'function') {
+      sub.eachLayer(function(l) {
+        if (l.setStyle) fn(l);
+      });
+    }
+  });
+}
+
+function saveSubItemOptions(parentId) {
+  var sl = subLayers[parentId];
+  if (!sl) return;
+  _savedOptions[parentId] = {};
+  Object.keys(sl.items).forEach(function(itemId) {
+    _savedOptions[parentId][itemId] = [];
+    eachGeoJSONLayer(sl.items[itemId], function(l) {
+      _savedOptions[parentId][itemId].push({ opacity: l.options.opacity, fillOpacity: l.options.fillOpacity });
+    });
+  });
+}
+
+function restoreSubItemOptions(parentId) {
+  var saved = _savedOptions[parentId];
+  if (!saved) return;
+  var sl = subLayers[parentId];
+  if (!sl) return;
+  Object.keys(sl.items).forEach(function(itemId) {
+    var opts = saved[itemId];
+    if (!opts) return;
+    var idx = 0;
+    eachGeoJSONLayer(sl.items[itemId], function(l) {
+      if (idx < opts.length) { l.setStyle(opts[idx]); idx++; }
+    });
+  });
+  delete _savedOptions[parentId];
+}
+
+function dimSubItems(parentId, opacity) {
+  var sl = subLayers[parentId];
+  if (!sl) return;
+  Object.keys(sl.items).forEach(function(itemId) {
+    eachGeoJSONLayer(sl.items[itemId], function(l) {
+      l.setStyle({ opacity: opacity });
+    });
+  });
+}
+
+function enableSubpageMode() {
+  mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
+
+  // Show macrorregião layers and dim them
+  ['mac_mancha', 'mac_ferrovias', 'mac_vias'].forEach(function(id) {
+    if (!activeLayers[id]) {
+      toggleLayer(id);
+      _wasToggledBySubpage[id] = true;
+    }
+    if (id !== 'mac_vias') {
+      saveLayerOptions(id);
+      dimLayer(id, 0.12);
+    }
+  });
+
+  // Dim sub-items of mac_vias
+  saveSubItemOptions('mac_vias');
+  dimSubItems('mac_vias', 0.15);
+
+  // Show subpage circles
+  if (!activeLayers['subpage_circles']) {
+    toggleLayer('subpage_circles');
+    _wasToggledBySubpage['subpage_circles'] = true;
+  }
+}
+
+function disableSubpageMode() {
+  // Hide circles if we toggled them
+  if (_wasToggledBySubpage['subpage_circles']) {
+    toggleLayer('subpage_circles');
+    delete _wasToggledBySubpage['subpage_circles'];
+  }
+
+  // Restore or hide macrorregião layers
+  ['mac_mancha', 'mac_ferrovias', 'mac_vias'].forEach(function(id) {
+    if (_wasToggledBySubpage[id]) {
+      toggleLayer(id);
+      delete _wasToggledBySubpage[id];
+    } else {
+      if (id !== 'mac_vias') restoreLayerOptions(id);
+    }
+  });
+
+  restoreSubItemOptions('mac_vias');
+
+  mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
 }
 
 function toggleAllLayers(pageIndex) {
@@ -1963,7 +2201,7 @@ document.addEventListener('keydown', function(e) {
   
   // After last video of slide, right arrow goes to next slide
   if (e.key === 'ArrowRight') {
-    var slideLastVideo = { 1: '2.mp4', 2: '5.mp4', 3: '8.mp4', 4: '11.mp4' };
+    var slideLastVideo = { 1: '2.mp4', 2: '5.mp4', 3: '8.mp4' };
     var lastVid = slideLastVideo[currentSlide];
     if (lastVid) {
       var curVid = document.querySelectorAll('.video-overlay');
@@ -2002,7 +2240,11 @@ document.addEventListener('keydown', function(e) {
     videoOverlays[currentSlide][0].file = newFile;
     saveVideoOverlays(currentSlide);
   }
-  if (currentSlide === 4 && newFile === '10.mp4') { toggleGallery(true, true); } else if (currentSlide === 4) { toggleGallery(false); }
+  if (currentSlide === 4) {
+    if (newFile === '10.mp4') { toggleGallery(true, true); disableSubpageMode(); }
+    else if (newFile === '11.mp4') { toggleGallery(false); enableSubpageMode(); }
+    else { toggleGallery(false); disableSubpageMode(); }
+  }
   // Advance/go back presentation step to match the new video
   if (currentStep >= 0) {
     var bestIdx = -1;
