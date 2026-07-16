@@ -2183,6 +2183,14 @@ document.addEventListener('keydown', function(e) {
     }
   }
 
+  // Cover: right arrow advances to slide 1
+  if (currentSlide === 0 && e.key === 'ArrowRight') {
+    e.preventDefault();
+    currentStep = -1;
+    switchSlide(1);
+    return;
+  }
+
   // Slide 5: cycle images
   if (currentSlide === 5) {
     var areasImg = document.getElementById('areas-img');
