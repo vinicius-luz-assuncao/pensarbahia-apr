@@ -5,7 +5,8 @@ const IMAGE_MAP = {
   'galeria_3': 'DESEMBARAÇO E ENTREPOSTO ADUANEIRO.png',
   'galeria_4': 'CONSOLIDAÇÃO E DESCONSOLIDAÇÃO DE CONTEINERS.png',
   'galeria_5': 'FUMIGAÇÃO, EMBALAGEM, ETIQUETAGEM, MONTAGEM.png',
-  'galeria_6': 'LIMPEZA,MANUTENÇÃO E INSPEÇÃO DE CONTEINERS.png'
+  'galeria_6': 'LIMPEZA,MANUTENÇÃO E INSPEÇÃO DE CONTEINERS.png',
+  'cia_norte': 'CIA NORTE.png'
 };
 
 var ROUTE_SUB_ITEMS = {

@@ -849,6 +849,49 @@ html, body {
 .toggle-all-btn.active { background: var(--accent-red-soft); border-color: var(--accent-red); color: var(--accent-red); }
 .gallery-open-btn:hover { background: var(--blue-hover); box-shadow: var(--shadow-md); }
 
+.cia-norte-overlay {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  max-width: 1000px;
+  height: 80vh;
+  z-index: 1200;
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: none;
+  overflow: hidden;
+}
+.cia-norte-overlay.open { display: flex; }
+.cia-norte-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+.cia-norte-body img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.cia-norte-close {
+  position: absolute;
+  top: 8px; right: 12px;
+  font-size: 32px;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink);
+  z-index: 2;
+  padding: 4px 8px;
+}
+.cia-norte-close:hover { color: var(--accent-red); }
+
 /* ============================================================
    BAHIA FULLSCREEN / DRAG
    ============================================================ */

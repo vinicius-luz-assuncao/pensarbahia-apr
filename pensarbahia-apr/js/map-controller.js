@@ -1019,6 +1019,10 @@ function switchSlide(index) {
   var sidebarToggle = document.getElementById('sidebar-toggle');
   if (sidebarToggle) sidebarToggle.style.display = (index === 5) ? 'none' : '';
 
+  // Ocultar legenda no slide 5
+  var mapLegend = document.querySelector('.map-legend');
+  if (mapLegend) mapLegend.style.display = (index === 5) ? 'none' : '';
+
   // Desativar camadas da página anterior
   var slideToPage = {0: 0, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4};
   var prevPageKey = slideToPage[currentSlide];
@@ -1113,7 +1117,7 @@ function switchSlide(index) {
 
   if (!mapInstance) return;
   if (index >= 1) {
-    toggleGallery(false);
+    toggleGallery(false); toggleCiaNorte(false);
     var savedView = null;
     try { var v = localStorage.getItem('pensarbahia_slide' + index + '_view'); if (v) savedView = JSON.parse(v); } catch(e) {}
     if (savedView && index !== 3) {
@@ -1252,11 +1256,11 @@ function enableSubpageMode() {
     }
     if (id !== 'mac_vias') {
       saveLayerOptions(id);
-      dimLayer(id, 0.12);
+      dimLayer(id, 0.06);
     }
   });
   // Dim mac_vias sub-items
-  dimSubItems('mac_vias', 0.15);
+  dimSubItems('mac_vias', 0.08);
 
   // Turn off bts_ferrovias and bts_rodovias (Parque Logístico)
   ['bts_ferrovias', 'bts_rodovias'].forEach(function(id) {
@@ -1384,6 +1388,12 @@ function buildGallery() {
   grid.innerHTML = html;
 }
 
+function toggleCiaNorte(open) {
+  var overlay = document.getElementById('cia-norte-overlay');
+  if (!overlay) return;
+  overlay.classList.toggle('open', open !== undefined ? open : !overlay.classList.contains('open'));
+}
+
 function toggleGallery(open, sequential) {
   var overlay = document.getElementById('gallery-overlay');
   if (!overlay) return;
@@ -1489,6 +1499,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.getElementById('cover-start').addEventListener('click', function() {
     switchSlide(1);
+  });
+  document.getElementById('cia-norte-close').addEventListener('click', function() {
+    toggleCiaNorte(false);
   });
 
   // Drag for cover button
@@ -1961,6 +1974,11 @@ function goToPresentationStep(idx) {
     }
   }
 
+  // Open CIA NORTE gallery after last step of slide 4, video 9
+  if (step.slide === 4 && step.video === '9.mp4' && step.layers.indexOf('bts_rodovias') !== -1) {
+    setTimeout(function() { toggleCiaNorte(true); }, 500);
+  }
+
   currentStep = idx;
 }
 
@@ -2281,6 +2299,7 @@ document.addEventListener('keydown', function(e) {
     saveVideoOverlays(currentSlide);
   }
   if (currentSlide === 4) {
+    toggleCiaNorte(false);
     if (newFile === '10.mp4') { toggleGallery(true, true); disableSubpageMode(); }
     else if (newFile === '11.mp4') { toggleGallery(false); currentStep = -1; enableSubpageMode(); }
     else { toggleGallery(false); disableSubpageMode(); }
