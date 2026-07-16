@@ -1241,11 +1241,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var btn = e.target.closest('.page-layer-btn');
     if (btn && btn.dataset.pageLayer) {
       currentStep = -1;
-      if (btn.dataset.pageLayer === 'int_bahia' && currentSlide === 1) {
-        switchSlide(2);
-      } else {
-        toggleLayer(btn.dataset.pageLayer);
-      }
+      toggleLayer(btn.dataset.pageLayer);
     }
     var toggleAll = e.target.closest('.toggle-all-btn');
     if (toggleAll) { currentStep = -1; toggleAllLayers(parseInt(toggleAll.dataset.page)); }
