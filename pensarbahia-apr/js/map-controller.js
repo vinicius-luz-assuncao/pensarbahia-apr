@@ -1451,6 +1451,31 @@ function resetGalleryReveal() {
   });
 }
 
+/* CIA NORTE overlay state save/restore */
+function saveCiaNorteState() {
+  var o = document.getElementById('cia-norte-overlay');
+  if (!o) return;
+  try {
+    localStorage.setItem('pensarbahia_cia_norte_state', JSON.stringify({
+      left: o.style.left || '', top: o.style.top || '',
+      width: o.style.width || o.offsetWidth, height: o.style.height || o.offsetHeight
+    }));
+  } catch(e) {}
+}
+function restoreCiaNorteState() {
+  var o = document.getElementById('cia-norte-overlay');
+  if (!o) return;
+  try {
+    var saved = localStorage.getItem('pensarbahia_cia_norte_state');
+    if (saved) {
+      var s = JSON.parse(saved);
+      if (s.left && s.top) { o.style.transform = 'none'; o.style.left = s.left; o.style.top = s.top; o.style.marginTop = '0'; o.style.marginLeft = '0'; }
+      if (s.width) o.style.width = (typeof s.width === 'number' ? s.width + 'px' : s.width);
+      if (s.height) o.style.height = (typeof s.height === 'number' ? s.height + 'px' : s.height);
+    }
+  } catch(e) {}
+}
+
 /* Gallery state save/restore */
 function saveGalleryState() {
   var overlay = document.getElementById('gallery-overlay');
@@ -1491,6 +1516,32 @@ document.addEventListener('DOMContentLoaded', function() {
   (function() {
     var g = document.getElementById('gallery-overlay');
     if (g) g.addEventListener('mouseup', function() { setTimeout(saveGalleryState, 50); });
+  })();
+
+  // CIA NORTE overlay — drag + resize persistence
+  (function() {
+    var o = document.getElementById('cia-norte-overlay');
+    if (!o) return;
+    var dragData = null;
+    o.addEventListener('mousedown', function(e) {
+      if (e.target.closest('.cia-norte-close')) return;
+      if (e.target.closest('img')) return;
+      e.preventDefault();
+      dragData = { startX: e.clientX, startY: e.clientY, origLeft: o.offsetLeft, origTop: o.offsetTop };
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (!dragData) return;
+      var dx = e.clientX - dragData.startX, dy = e.clientY - dragData.startY;
+      o.style.marginTop = '0'; o.style.marginLeft = '0';
+      o.style.transform = 'none';
+      o.style.left = (dragData.origLeft + dx) + 'px';
+      o.style.top = (dragData.origTop + dy) + 'px';
+    });
+    document.addEventListener('mouseup', function() {
+      if (dragData) { dragData = null; saveCiaNorteState(); }
+    });
+    o.addEventListener('mouseup', function() { setTimeout(saveCiaNorteState, 50); });
+    restoreCiaNorteState();
   })();
 
   document.querySelector('.slide-tabs').addEventListener('click', function(e) {

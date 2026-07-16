@@ -856,13 +856,16 @@ html, body {
   width: 80vw;
   max-width: 1000px;
   height: 80vh;
-  z-index: 1200;
+  z-index: 540;
   background: var(--surface-card);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   display: none;
-  overflow: hidden;
+  overflow: auto;
+  resize: both;
+  min-width: 200px;
+  min-height: 120px;
 }
 .cia-norte-overlay.open { display: flex; }
 .cia-norte-body {
