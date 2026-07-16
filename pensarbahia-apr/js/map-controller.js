@@ -1189,16 +1189,79 @@ function dimLayer(id, opacity) {
   });
 }
 
+function eachGeoJSONLayer(item, fn) {
+  if (!item || !item.eachLayer) return;
+  item.eachLayer(function(sub) {
+    if (sub && sub.eachLayer && typeof sub.setStyle === 'function') {
+      sub.eachLayer(function(l) {
+        if (l.setStyle) fn(l);
+      });
+    }
+  });
+}
+
+function saveSubItemOptions(parentId) {
+  var sl = subLayers[parentId];
+  if (!sl) return;
+  _savedOptions[parentId] = {};
+  Object.keys(sl.items).forEach(function(itemId) {
+    _savedOptions[parentId][itemId] = [];
+    eachGeoJSONLayer(sl.items[itemId], function(l) {
+      _savedOptions[parentId][itemId].push({ opacity: l.options.opacity, fillOpacity: l.options.fillOpacity });
+    });
+  });
+}
+
+function restoreSubItemOptions(parentId) {
+  var saved = _savedOptions[parentId];
+  if (!saved) return;
+  var sl = subLayers[parentId];
+  if (!sl) return;
+  Object.keys(sl.items).forEach(function(itemId) {
+    var opts = saved[itemId];
+    if (!opts) return;
+    var idx = 0;
+    eachGeoJSONLayer(sl.items[itemId], function(l) {
+      if (idx < opts.length) { l.setStyle(opts[idx]); idx++; }
+    });
+  });
+  delete _savedOptions[parentId];
+}
+
+function dimSubItems(parentId, opacity) {
+  var sl = subLayers[parentId];
+  if (!sl) return;
+  Object.keys(sl.items).forEach(function(itemId) {
+    eachGeoJSONLayer(sl.items[itemId], function(l) {
+      l.setStyle({ opacity: opacity });
+    });
+  });
+}
+
 function enableSubpageMode() {
   mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
 
-  // Show only mancha layer (dimmed) for geographic context
-  if (!activeLayers['mac_mancha']) {
-    toggleLayer('mac_mancha');
-    _wasToggledBySubpage['mac_mancha'] = true;
-  }
-  saveLayerOptions('mac_mancha');
-  dimLayer('mac_mancha', 0.04);
+  // Show macrorregião layers (dimmed)
+  ['mac_mancha', 'mac_ferrovias', 'mac_vias'].forEach(function(id) {
+    if (!activeLayers[id]) {
+      toggleLayer(id);
+      _wasToggledBySubpage[id] = true;
+    }
+    if (id !== 'mac_vias') {
+      saveLayerOptions(id);
+      dimLayer(id, 0.12);
+    }
+  });
+  // Dim mac_vias sub-items
+  dimSubItems('mac_vias', 0.15);
+
+  // Turn off bts_ferrovias and bts_rodovias (Parque Logístico)
+  ['bts_ferrovias', 'bts_rodovias'].forEach(function(id) {
+    if (activeLayers[id]) {
+      toggleLayer(id);
+      _wasToggledBySubpage[id] = true;
+    }
+  });
 
   // Show subpage circles
   if (!activeLayers['subpage_circles']) {
@@ -1214,13 +1277,24 @@ function disableSubpageMode() {
     delete _wasToggledBySubpage['subpage_circles'];
   }
 
-  // Restore or hide mancha layer
-  if (_wasToggledBySubpage['mac_mancha']) {
-    toggleLayer('mac_mancha');
-    delete _wasToggledBySubpage['mac_mancha'];
-  } else {
-    restoreLayerOptions('mac_mancha');
-  }
+  // Restore macrorregião layers
+  ['mac_mancha', 'mac_ferrovias', 'mac_vias'].forEach(function(id) {
+    if (_wasToggledBySubpage[id]) {
+      toggleLayer(id);
+      delete _wasToggledBySubpage[id];
+    } else {
+      if (id !== 'mac_vias') restoreLayerOptions(id);
+    }
+  });
+  restoreSubItemOptions('mac_vias');
+
+  // Restore bts layers if we turned them off
+  ['bts_ferrovias', 'bts_rodovias'].forEach(function(id) {
+    if (_wasToggledBySubpage[id]) {
+      toggleLayer(id);
+      delete _wasToggledBySubpage[id];
+    }
+  });
 
   mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
 }
