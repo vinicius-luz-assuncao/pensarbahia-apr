@@ -612,7 +612,9 @@ function toggleLayer(id) {
     return;
   }
 
-  if (!mapLayers[id]) return;
+  if (!mapLayers[id]) {
+    if (!(lc.submenu && subLayers[id])) return;
+  }
   activeLayers[id] = !activeLayers[id];
 
   if (activeLayers[id]) {
@@ -623,7 +625,7 @@ function toggleLayer(id) {
         sl.active[itemId] = true;
       });
     }
-    mapInstance.addLayer(mapLayers[id]);
+    if (mapLayers[id]) mapInstance.addLayer(mapLayers[id]);
     lastToggled = id;
   } else {
     if (lc.submenu && subLayers[id]) {
@@ -640,7 +642,7 @@ function toggleLayer(id) {
         if (subBtn) subBtn.classList.remove('active');
       });
     }
-    mapInstance.removeLayer(mapLayers[id]);
+    if (mapLayers[id]) mapInstance.removeLayer(mapLayers[id]);
     if (lastToggled === id) lastToggled = null;
   }
 
