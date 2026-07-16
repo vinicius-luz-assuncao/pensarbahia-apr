@@ -1402,8 +1402,12 @@ function toggleCiaNorte(open) {
 
 function toggleGallery(open, sequential) {
   var overlay = document.getElementById('gallery-overlay');
+  var backdrop = document.getElementById('gallery-backdrop');
   if (!overlay) return;
   var isOpen = open !== undefined ? open : !overlay.classList.contains('open');
+  if (backdrop) backdrop.classList.toggle('open', isOpen);
+  var legend = document.querySelector('.map-legend');
+  if (legend) legend.style.display = isOpen ? 'none' : '';
   
   if (isOpen) {
     resetGalleryReveal();
