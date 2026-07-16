@@ -1526,7 +1526,10 @@ document.addEventListener('DOMContentLoaded', function() {
     o.addEventListener('mousedown', function(e) {
       if (e.target.closest('.cia-norte-close')) return;
       if (e.target.closest('img')) return;
-      dragData = { startX: e.clientX, startY: e.clientY, origLeft: o.offsetLeft, origTop: o.offsetTop };
+      // Don't start drag on the resize handle area (bottom-right ~20px)
+      var rect = o.getBoundingClientRect();
+      if (rect.right - e.clientX <= 20 && rect.bottom - e.clientY <= 20) return;
+      dragData = { startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top };
     });
     document.addEventListener('mousemove', function(e) {
       if (!dragData) return;
