@@ -140,20 +140,7 @@ const LAYER_GROUPS = [
         file: 'data/ferroviasmacrorregiao.geojson',
         type: 'bts', subtype: 'line',
         color: '#8b0000', weight: 5,
-        submenu: true,
-        legendLabel: 'Ferrovia',
-        featureNames: {
-          'Constru\u00e7\u00e3o de ferrovia': {
-            ids: ['eymf1', 'P6xA1', 'ujoXL', 'V260z', 'iehS6'],
-            label: 'CONSTRU\u00c7\u00c3O DE FERROVIA',
-            color: '#e74c3c', weight: 5
-          },
-          'Requalifica\u00e7\u00e3o de ferrovia': {
-            ids: ['bixrh', '2rFE7'],
-            label: 'REQUALIFICA\u00c7\u00c3O DE FERROVIA',
-            color: '#3498db', weight: 5
-          }
-        }
+        legendLabel: 'Ferrovia'
       },
       {
         id: 'mac_circulo', label: 'Complexos portu\u00e1rios',
