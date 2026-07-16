@@ -1120,7 +1120,7 @@ function switchSlide(index) {
     toggleGallery(false); toggleCiaNorte(false);
     var savedView = null;
     try { var v = localStorage.getItem('pensarbahia_slide' + index + '_view'); if (v) savedView = JSON.parse(v); } catch(e) {}
-    if (savedView && index !== 3) {
+    if (savedView && index !== 3 && index !== 4) {
       mapInstance.setView(savedView.center, savedView.zoom, { duration: 2 });
     } else if (index === 1) {
       mapInstance.flyTo([-15.0, -60.0], 4, { duration: 2 });
@@ -1138,7 +1138,7 @@ function switchSlide(index) {
 }
 
 function saveCurrentMapView() {
-  if (!mapInstance || currentSlide < 1 || currentSlide > 5 || currentSlide === 3 || currentSlide === 5) return;
+  if (!mapInstance || currentSlide < 1 || currentSlide > 5 || currentSlide === 3 || currentSlide === 4 || currentSlide === 5) return;
   var c = mapInstance.getCenter();
   var z = mapInstance.getZoom();
   try {
@@ -1256,11 +1256,12 @@ function enableSubpageMode() {
     }
     if (id !== 'mac_vias') {
       saveLayerOptions(id);
-      dimLayer(id, 0.06);
+      dimLayer(id, 0.15);
     }
   });
   // Dim mac_vias sub-items
-  dimSubItems('mac_vias', 0.08);
+  saveSubItemOptions('mac_vias');
+  dimSubItems('mac_vias', 0.3);
 
   // Turn off bts_ferrovias and bts_rodovias (Parque Logístico)
   ['bts_ferrovias', 'bts_rodovias'].forEach(function(id) {
