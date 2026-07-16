@@ -993,9 +993,10 @@ html, body {
 }
 .cover-btn {
   font-family: 'IBM Plex Sans', sans-serif;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 700;
-  padding: 14px 48px;
+  padding: 18px 64px;
+  margin-top: 120px;
   border: none;
   border-radius: var(--radius-md);
   background: var(--blue-medium);
