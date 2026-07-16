@@ -851,8 +851,7 @@ html, body {
 
 .cia-norte-overlay {
   position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  top: 10vh; left: 10vw;
   width: 80vw;
   max-width: 1000px;
   height: 80vh;

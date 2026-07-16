@@ -1526,11 +1526,11 @@ document.addEventListener('DOMContentLoaded', function() {
     o.addEventListener('mousedown', function(e) {
       if (e.target.closest('.cia-norte-close')) return;
       if (e.target.closest('img')) return;
-      e.preventDefault();
       dragData = { startX: e.clientX, startY: e.clientY, origLeft: o.offsetLeft, origTop: o.offsetTop };
     });
     document.addEventListener('mousemove', function(e) {
       if (!dragData) return;
+      e.preventDefault();
       var dx = e.clientX - dragData.startX, dy = e.clientY - dragData.startY;
       o.style.marginTop = '0'; o.style.marginLeft = '0';
       o.style.transform = 'none';
