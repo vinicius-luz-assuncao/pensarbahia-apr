@@ -872,7 +872,7 @@ html, body {
   height: 100%;
   z-index: 500;
   display: none;
-  background: #000;
+  background: #fff;
   align-items: center;
   justify-content: center;
 }
@@ -1074,7 +1074,22 @@ html, body {
 }
 
 /* ===== MAP IMAGE GRID (slide 4, video 10 overlay) ===== */
- 
+
+/* Circle labels (subpage mode) */
+.circle-label {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: rgba(26,58,92,0.9);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  white-space: nowrap;
+}
 
 
 

@@ -265,6 +265,7 @@ function loadLayer(lc) {
             var color = cfg.color || '#3498db';
 
             var circle = L.circle(center, { radius: radius, color: color, weight: lc.weight || 2, fillColor: color, fillOpacity: 0.08 });
+            circle.bindTooltip(cfg.color === '#3498db' ? 'Centro de atração' : 'Polos e terminais', { permanent: true, direction: 'top', className: 'circle-label' });
 
             function saveCircle() {
               var c = circle.getLatLng();
@@ -1288,7 +1289,7 @@ function enableSubpageMode() {
         _staggerTimers.push(timer);
       });
       // Return to full macrorregião view after last circle
-      var totalDelay = (5 * blueDelay) + (6 * pinkDelay) + 2500;
+      var totalDelay = (5 * blueDelay) + (6 * pinkDelay) + 800;
       var returnTimer = setTimeout(function() {
         mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
       }, totalDelay);
