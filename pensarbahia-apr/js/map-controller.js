@@ -1391,8 +1391,11 @@ function buildGallery() {
 
 function toggleCiaNorte(open) {
   var overlay = document.getElementById('cia-norte-overlay');
+  var backdrop = document.getElementById('cia-norte-backdrop');
   if (!overlay) return;
-  overlay.classList.toggle('open', open !== undefined ? open : !overlay.classList.contains('open'));
+  var isOpen = open !== undefined ? open : !overlay.classList.contains('open');
+  overlay.classList.toggle('open', isOpen);
+  if (backdrop) backdrop.classList.toggle('open', isOpen);
 }
 
 function toggleGallery(open, sequential) {

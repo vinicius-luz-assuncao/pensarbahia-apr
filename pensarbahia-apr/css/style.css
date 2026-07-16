@@ -849,6 +849,15 @@ html, body {
 .toggle-all-btn.active { background: var(--accent-red-soft); border-color: var(--accent-red); color: var(--accent-red); }
 .gallery-open-btn:hover { background: var(--blue-hover); box-shadow: var(--shadow-md); }
 
+.cia-norte-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 535;
+  background: #fff;
+  display: none;
+}
+.cia-norte-backdrop.open { display: block; }
+
 .cia-norte-overlay {
   position: fixed;
   top: 10vh; left: 10vw;
