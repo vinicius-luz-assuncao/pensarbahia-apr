@@ -125,7 +125,8 @@ const LAYER_GROUPS = [
             label: 'RODOVIAS', color: '#8e44ad', weight: 5
           },
           'Santo Ant\u00f4nio de Jesus \u2192 Salvador': {
-            ids: ['V5L02', 'R2tzk', 'f9f2j', 'Ijxca', 'IWkVr', 'xQTJu', 'EkGci', 'AuzGI'],
+            file: 'data/ponte.geojson',
+            ids: ['V5L02', 'R2tzk', 'f9f2j', 'Ijxca', 'IWkVr', 'xQTJu', 'EkGci', 'AuzGI', 'F7egE', 'p2yDO', 'sIRKb', 'hgwLV', 'bQHLS', 'tHeB3', '7ICj7', 'SXN6a', 'I0sN2', 'EO2y4', 'm5rag', 'B6EMe'],
             label: 'PONTE', color: '#2ecc71', weight: 5
           },
           'Nazar\u00e9 \u2192 Valen\u00e7a': {

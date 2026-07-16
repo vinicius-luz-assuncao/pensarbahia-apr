@@ -320,14 +320,33 @@ function filterFeature(f, lc) {
 
 function loadBTS(lc) {
   fetchFile(lc.file).then(function(gj) {
-    var features = gj.features.filter(function(f) { return filterFeature(f, lc); });
-    if (!features.length) return;
-    var dirs = ['top', 'right', 'bottom', 'left'];
-    var labelCount = 0;
+    // Load extra files from featureNames groups and merge into gj.features
+    var extraUrls = [];
+    if (lc.featureNames) {
+      Object.keys(lc.featureNames).forEach(function(groupName) {
+        var cfg = lc.featureNames[groupName];
+        if (cfg.file && extraUrls.indexOf(cfg.file) === -1) extraUrls.push(cfg.file);
+      });
+    }
+    var mergeChain = Promise.resolve();
+    extraUrls.forEach(function(url) {
+      mergeChain = mergeChain.then(function() {
+        return fetchFile(url).then(function(extraGj) {
+          if (extraGj && extraGj.features) {
+            gj.features = gj.features.concat(extraGj.features);
+          }
+        });
+      });
+    });
+    mergeChain.then(function() {
+      var features = gj.features.filter(function(f) { return filterFeature(f, lc); });
+      if (!features.length) return;
+      var dirs = ['top', 'right', 'bottom', 'left'];
+      var labelCount = 0;
 
-    if (lc.submenu) {
-      // If featureNames is defined, group features by named entries
-      if (lc.featureNames) {
+      if (lc.submenu) {
+        // If featureNames is defined, group features by named entries
+        if (lc.featureNames) {
         subLayers[lc.id] = { features: [], items: {}, active: {}, names: {} };
         var nameGroups = {};
         Object.keys(lc.featureNames).forEach(function(groupName) {
@@ -475,6 +494,7 @@ function loadBTS(lc) {
       });
     }
     if (activeLayers[lc.id]) mapInstance.addLayer(mapLayers[lc.id]);
+    });
   }).catch(function() {});
 }
 
