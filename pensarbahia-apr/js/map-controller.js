@@ -1156,6 +1156,7 @@ function lockMapView() {
    ============================================================ */
 var _savedOptions = {};
 var _wasToggledBySubpage = {};
+var _staggerTimers = [];
 
 function saveLayerOptions(id) {
   _savedOptions[id] = [];
@@ -1263,17 +1264,41 @@ function enableSubpageMode() {
     }
   });
 
-  // Show subpage circles
+  // Show subpage circles staggered (azuis primeiro, rosas depois)
   if (!activeLayers['subpage_circles']) {
-    toggleLayer('subpage_circles');
+    activeLayers['subpage_circles'] = true;
+    document.querySelectorAll('.layer-btn[data-layer="subpage_circles"]').forEach(function(btn) { btn.classList.add('active'); });
+    syncPageButtons('subpage_circles');
     _wasToggledBySubpage['subpage_circles'] = true;
+
+    var group = mapLayers['subpage_circles'];
+    if (group) {
+      var allCircles = group.getLayers();
+      _staggerTimers = [];
+      allCircles.forEach(function(circle, i) {
+        var delay = i < 5 ? i * 600 : (5 * 600) + (i - 5) * 500;
+        var timer = setTimeout(function() {
+          mapInstance.addLayer(circle);
+        }, delay);
+        _staggerTimers.push(timer);
+      });
+    }
   }
 }
 
 function disableSubpageMode() {
   // Hide circles if we toggled them
   if (_wasToggledBySubpage['subpage_circles']) {
-    toggleLayer('subpage_circles');
+    // Cancel any pending staggered timers
+    _staggerTimers.forEach(function(t) { clearTimeout(t); });
+    _staggerTimers = [];
+    // Remove individual circles from map
+    if (mapLayers['subpage_circles']) {
+      mapLayers['subpage_circles'].eachLayer(function(circle) { mapInstance.removeLayer(circle); });
+    }
+    activeLayers['subpage_circles'] = false;
+    document.querySelectorAll('.layer-btn[data-layer="subpage_circles"]').forEach(function(btn) { btn.classList.remove('active'); });
+    syncPageButtons('subpage_circles');
     delete _wasToggledBySubpage['subpage_circles'];
   }
 
