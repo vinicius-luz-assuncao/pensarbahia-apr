@@ -1156,6 +1156,16 @@ function lockMapView() {
   mapInstance.keyboard.disable();
   if (mapInstance.tap) mapInstance.tap.disable();
 }
+function unlockMapView() {
+  if (!mapInstance) return;
+  mapInstance.dragging.enable();
+  mapInstance.scrollWheelZoom.enable();
+  mapInstance.touchZoom.enable();
+  mapInstance.doubleClickZoom.enable();
+  mapInstance.boxZoom.enable();
+  mapInstance.keyboard.enable();
+  if (mapInstance.tap) mapInstance.tap.enable();
+}
 
 /* ============================================================
    SUBPAGE MODE — Slide 4 video 11
@@ -1246,22 +1256,28 @@ function dimSubItems(parentId, opacity) {
 }
 
 function enableSubpageMode() {
-  mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
+  // Restore saved subpage view or fly to default
+  var savedSubpageView = null;
+  try { var sv = localStorage.getItem('pensarbahia_subpage_view'); if (sv) savedSubpageView = JSON.parse(sv); } catch(e) {}
+  if (savedSubpageView) {
+    mapInstance.setView(savedSubpageView.center, savedSubpageView.zoom);
+  } else {
+    mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
+  }
 
-  // Show macrorregião layers (dimmed)
+  // Dim macrorregião layers (already active from background)
   ['mac_mancha', 'mac_ferrovias', 'mac_vias'].forEach(function(id) {
-    if (!activeLayers[id]) {
-      toggleLayer(id);
-      _wasToggledBySubpage[id] = true;
-    }
-    if (id !== 'mac_vias') {
-      saveLayerOptions(id);
-      dimLayer(id, 0.15);
+    if (activeLayers[id]) {
+      if (id !== 'mac_vias') {
+        saveLayerOptions(id);
+        dimLayer(id, 0.15);
+      }
     }
   });
-  // Dim mac_vias sub-items
-  saveSubItemOptions('mac_vias');
-  dimSubItems('mac_vias', 0.3);
+  if (activeLayers['mac_vias']) {
+    saveSubItemOptions('mac_vias');
+    dimSubItems('mac_vias', 0.3);
+  }
 
   // Turn off bts_ferrovias and bts_rodovias (Parque Logístico)
   ['bts_ferrovias', 'bts_rodovias'].forEach(function(id) {
@@ -1300,14 +1316,35 @@ function enableSubpageMode() {
       // Return to full macrorregião view after last circle
       var totalDelay = (5 * blueDelay) + (6 * pinkDelay) + 800;
       var returnTimer = setTimeout(function() {
-        mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
+        var sv;
+        try { sv = JSON.parse(localStorage.getItem('pensarbahia_subpage_view')); } catch(e) {}
+        if (sv) {
+          mapInstance.setView(sv.center, sv.zoom);
+        } else {
+          mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
+        }
       }, totalDelay);
       _staggerTimers.push(returnTimer);
     }
   }
+
+  // Enable map interaction + save position on move
+  unlockMapView();
+  mapInstance.on('moveend', saveSubpageView);
+}
+
+function saveSubpageView() {
+  if (!mapInstance) return;
+  var c = mapInstance.getCenter();
+  var z = mapInstance.getZoom();
+  try { localStorage.setItem('pensarbahia_subpage_view', JSON.stringify({ center: [c.lat, c.lng], zoom: z })); } catch(e) {}
 }
 
 function disableSubpageMode() {
+  // Lock map and remove move listener
+  mapInstance.off('moveend', saveSubpageView);
+  lockMapView();
+
   // Hide circles if we toggled them
   if (_wasToggledBySubpage['subpage_circles']) {
     // Cancel any pending staggered timers
@@ -2040,7 +2077,7 @@ function goToPresentationStep(idx) {
 
   // Open CIA NORTE gallery after last step of slide 4, video 9
   if (step.slide === 4 && step.video === '9.mp4' && step.layers.indexOf('bts_rodovias') !== -1) {
-    setTimeout(function() { toggleCiaNorte(true); }, 3000);
+    setTimeout(function() { toggleCiaNorte(true); }, 5000);
   }
 
   currentStep = idx;
