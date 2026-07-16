@@ -1275,18 +1275,20 @@ function enableSubpageMode() {
     if (group) {
       var allCircles = group.getLayers();
       _staggerTimers = [];
+      var blueDelay = 2000;
+      var pinkDelay = 1800;
       allCircles.forEach(function(circle, i) {
-        var delay = i < 5 ? i * 600 : (5 * 600) + (i - 5) * 500;
+        var delay = i < 5 ? i * blueDelay : (5 * blueDelay) + (i - 5) * pinkDelay;
         var zoom = i < 5 ? 12 : 13;
         var timer = setTimeout(function() {
           mapInstance.addLayer(circle);
           var c = circle.getLatLng();
-          mapInstance.flyTo(c, zoom, { duration: 1.2 });
+          mapInstance.flyTo(c, zoom, { duration: 1.5 });
         }, delay);
         _staggerTimers.push(timer);
       });
       // Return to full macrorregião view after last circle
-      var totalDelay = (5 * 600) + (6 * 500) + 1500;
+      var totalDelay = (5 * blueDelay) + (6 * pinkDelay) + 2500;
       var returnTimer = setTimeout(function() {
         mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
       }, totalDelay);
