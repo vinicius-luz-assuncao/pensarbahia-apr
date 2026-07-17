@@ -139,6 +139,11 @@ function initMap() {
     });
   });
   _legendCtrl = new LegendControl({ position: 'bottomright' }).addTo(mapInstance);
+  mapInstance.on('moveend', function() {
+    if (currentSlide >= 1 && currentSlide <= 4 && !_subpageModeActive) {
+      saveCurrentMapView();
+    }
+  });
   setTimeout(function() { mapInstance.invalidateSize(); }, 100);
   var loading = document.getElementById('map-loading');
   if (loading) {
@@ -1161,9 +1166,11 @@ function switchSlide(index) {
   if (!mapInstance) return;
   if (index >= 1) {
     toggleGallery(false); toggleCiaNorte(false);
+    // Unlock map for slides 3 and 4 (dragable)
+    if (index === 3 || index === 4) { unlockMapView(); } else { lockMapView(); }
     var savedView = null;
     try { var v = localStorage.getItem('pensarbahia_slide' + index + '_view'); if (v) savedView = JSON.parse(v); } catch(e) {}
-    if (savedView && index !== 3 && index !== 4) {
+    if (savedView) {
       mapInstance.setView(savedView.center, savedView.zoom, { duration: 2 });
     } else if (index === 1) {
       mapInstance.flyTo([-15.0, -60.0], 4, { duration: 2 });
@@ -1181,7 +1188,7 @@ function switchSlide(index) {
 }
 
 function saveCurrentMapView() {
-  if (!mapInstance || currentSlide < 1 || currentSlide > 5 || currentSlide === 3 || currentSlide === 4 || currentSlide === 5) return;
+  if (!mapInstance || currentSlide < 1 || currentSlide > 5) return;
   var c = mapInstance.getCenter();
   var z = mapInstance.getZoom();
   try {
@@ -1215,6 +1222,7 @@ function unlockMapView() {
    SUBPAGE MODE — Slide 4 video 11
    ============================================================ */
 var _legendCtrl;
+var _subpageModeActive = false;
 var _savedOptions = {};
 var _wasToggledBySubpage = {};
 var _staggerTimers = [];
@@ -1301,6 +1309,7 @@ function dimSubItems(parentId, opacity) {
 }
 
 function enableSubpageMode() {
+  _subpageModeActive = true;
   // Enable map interaction immediately
   unlockMapView();
 
@@ -1388,9 +1397,9 @@ function saveSubpageView() {
 }
 
 function disableSubpageMode() {
-  // Lock map and remove move listener
+  _subpageModeActive = false;
+  // Remove move listener (map locking handled by switchSlide)
   mapInstance.off('moveend', saveSubpageView);
-  lockMapView();
 
   // Hide circles if we toggled them
   if (_wasToggledBySubpage['subpage_circles']) {
@@ -2392,7 +2401,7 @@ document.addEventListener('keydown', function(e) {
     return;
   }
 
-  // Slide 5: cycle images
+  // Slide 5: cycle images (ArrowLeft on first goes to slide 4)
   if (currentSlide === 5) {
     var areasImg = document.getElementById('areas-img');
     if (!areasImg || !areasImg.src) return;
@@ -2401,6 +2410,12 @@ document.addEventListener('keydown', function(e) {
     var curFile = areasImg.src.split('/').pop();
     var curIdx = slideFiles.indexOf(curFile);
     if (curIdx === -1) curIdx = 0;
+    if (e.key === 'ArrowLeft' && curIdx === 0) {
+      e.preventDefault();
+      currentStep = -1;
+      switchSlide(4);
+      return;
+    }
     if (e.key === 'ArrowRight') {
       curIdx = (curIdx + 1) % slideFiles.length;
     } else {
