@@ -113,7 +113,7 @@ const LAYER_GROUPS = [
         id: 'mac_cidades', label: 'Pontos Log\u00edsticos',
         file: 'data/MACRORREGI\u00c3O.geojson',
         type: 'bts', subtype: 'point', color: '#722f37',
-        labelDirections: { 'Cama\u00e7ari': 'top', 'Salvador': 'bottom', 'Aratu': 'left', 'Sim\u00f5es Filho': 'right', 'Itatim': 'top', 'Castro Alves': 'bottom', 'Santo Ant\u00f4nio de Jesus': 'left' }
+        labelDirections: { 'Cama\u00e7ari': 'top', 'Salvador': 'bottom', 'Aratu': 'left', 'Sim\u00f5es Filho': 'right', 'Itatim': 'top', 'Castro Alves': 'bottom', 'Santo Ant\u00f4nio de Jesus': 'left', 'Feira de Santana': 'bottom' }
       },
       {
         id: 'mac_vias', label: 'Rodovias',
