@@ -140,6 +140,7 @@ function initMap() {
   });
   _legendCtrl = new LegendControl({ position: 'bottomright' }).addTo(mapInstance);
   mapInstance.on('moveend', function() {
+    if (_dontSaveNextMove) { _dontSaveNextMove = false; return; }
     if (currentSlide >= 1 && currentSlide <= 4 && !_subpageModeActive) {
       saveCurrentMapView();
     }
@@ -1227,6 +1228,7 @@ function unlockMapView() {
    ============================================================ */
 var _legendCtrl;
 var _subpageModeActive = false;
+var _dontSaveNextMove = false;
 var _savedOptions = {};
 var _wasToggledBySubpage = {};
 var _staggerTimers = [];
@@ -1439,7 +1441,7 @@ function disableSubpageMode() {
     }
   });
 
-  lockMapView();
+  _dontSaveNextMove = true;
   mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
   mapInstance.once('moveend', function() {
     if (currentSlide === 4) { unlockMapView(); }
