@@ -142,7 +142,7 @@ const LAYER_GROUPS = [
         type: 'bts', subtype: 'line',
         color: '#8b0000', weight: 5,
         legendLabel: 'Ferrovia',
-        labelPosition: [-12.266, -38.966]
+        labelPosition: [-12.230, -39.000]
       },
       {
         id: 'mac_circulo', label: 'Complexos portu\u00e1rios',
