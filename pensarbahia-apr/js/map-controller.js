@@ -1197,7 +1197,7 @@ function saveCurrentMapView() {
   var c = mapInstance.getCenter();
   var z = mapInstance.getZoom();
   try {
-    localStorage.setItem('pensarbahia_slide' + currentSlide + '_view', JSON.stringify({ center: [c.lat, c.lng], zoom: z }));
+    localStorage.setItem('pensarbahia_slide' + currentSlide + '_pos', JSON.stringify({ center: [c.lat, c.lng], zoom: z }));
   } catch(e) {}
 }
 
