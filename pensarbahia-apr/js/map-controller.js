@@ -1166,6 +1166,8 @@ function switchSlide(index) {
   if (!mapInstance) return;
   if (index >= 1) {
     toggleGallery(false); toggleCiaNorte(false);
+    // Lock map before flyTo to prevent interruption
+    lockMapView();
     var savedView = null;
     try { var v = localStorage.getItem('pensarbahia_slide' + index + '_view'); if (v) savedView = JSON.parse(v); } catch(e) {}
     if (savedView) {
@@ -1437,7 +1439,11 @@ function disableSubpageMode() {
     }
   });
 
+  lockMapView();
   mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
+  mapInstance.once('moveend', function() {
+    if (currentSlide === 4) { unlockMapView(); }
+  });
 }
 
 function toggleAllLayers(pageIndex) {
@@ -1610,7 +1616,6 @@ function restoreGalleryState() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  try { localStorage.removeItem('pensarbahia_slide3_view'); } catch(e) {}
   initMap();
   lockMapView();
   buildPageLayers();
