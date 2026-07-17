@@ -1214,7 +1214,6 @@ function switchSlide(index) {
     var savedView = null;
     try { var v = localStorage.getItem('pensarbahia_slide' + index + '_pos'); if (v) savedView = JSON.parse(v); } catch(e) {}
     if (savedView) {
-      if (index === 4) { savedView.zoom = 12; savedView.center[1] = -38.44107; }
       mapInstance.flyTo(savedView.center, savedView.zoom, { duration: 1.5 });
     } else if (index === 1) {
       mapInstance.flyTo([-15.0, -60.0], 4, { duration: 2 });
@@ -1223,13 +1222,13 @@ function switchSlide(index) {
     } else if (index === 3) {
       mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
     } else if (index === 4) {
-      mapInstance.flyTo([-12.76878, -38.44107], 12, { duration: 2 });
+      mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
     } else if (index === 5) {
-      mapInstance.flyTo([-12.76878, -38.44107], 12, { duration: 2 });
+      mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
     }
-    // Lock map after flyTo for all slides
+    // Unlock map — user reposiciona manualmente
     mapInstance.once('moveend', function() {
-      lockMapView();
+      unlockMapView();
     });
     setTimeout(function() { mapInstance.invalidateSize(); }, 200);
   }
@@ -1239,7 +1238,6 @@ function saveCurrentMapView() {
   if (!mapInstance || currentSlide < 1 || currentSlide > 5) return;
   var c = mapInstance.getCenter();
   var z = mapInstance.getZoom();
-  if (currentSlide === 4 && z > 12) z = 12;
   try {
     localStorage.setItem('pensarbahia_slide' + currentSlide + '_pos', JSON.stringify({ center: [c.lat, c.lng], zoom: z }));
   } catch(e) {}
