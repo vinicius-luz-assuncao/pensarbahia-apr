@@ -138,7 +138,7 @@ function initMap() {
       loadLayer(lc);
     });
   });
-  new LegendControl({ position: 'bottomright' }).addTo(mapInstance);
+  _legendCtrl = new LegendControl({ position: 'bottomright' }).addTo(mapInstance);
   setTimeout(function() { mapInstance.invalidateSize(); }, 100);
   var loading = document.getElementById('map-loading');
   if (loading) {
@@ -1057,9 +1057,14 @@ function switchSlide(index) {
   var sidebarToggle = document.getElementById('sidebar-toggle');
   if (sidebarToggle) sidebarToggle.style.display = (index === 5) ? 'none' : '';
 
-  // Ocultar legenda no slide 5
-  var mapLegend = document.querySelector('.map-legend');
-  if (mapLegend) mapLegend.style.display = (index === 5) ? 'none' : '';
+  // Remover legenda no slide 5
+  if (_legendCtrl) {
+    if (index === 5) {
+      mapInstance.removeControl(_legendCtrl);
+    } else if (!document.querySelector('.map-legend')) {
+      _legendCtrl.addTo(mapInstance);
+    }
+  }
 
   // Desativar camadas da página anterior
   var slideToPage = {0: 0, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4};
@@ -1209,6 +1214,7 @@ function unlockMapView() {
 /* ============================================================
    SUBPAGE MODE — Slide 4 video 11
    ============================================================ */
+var _legendCtrl;
 var _savedOptions = {};
 var _wasToggledBySubpage = {};
 var _staggerTimers = [];
