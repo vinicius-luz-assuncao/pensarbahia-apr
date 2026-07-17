@@ -2596,7 +2596,7 @@ document.addEventListener('keydown', function(e) {
   }
   if (currentSlide === 4) {
     toggleCiaNorte(false);
-    if (newFile === '10.mp4') { disableSubpageMode(); showCiaNorteCircle(function() { toggleGallery(true, true); }); }
+    if (newFile === '10.mp4') { disableSubpageMode(); toggleGallery(true, true); }
     else if (newFile === '11.mp4') { toggleGallery(false); currentStep = -1; enableSubpageMode(); }
     else { toggleGallery(false); disableSubpageMode(); }
   }
