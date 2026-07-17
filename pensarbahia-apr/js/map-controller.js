@@ -40,7 +40,11 @@ function updateLegend() {
   var html = '';
   LAYER_GROUPS.forEach(function(g) {
     g.layers.forEach(function(l) {
-      if (l.type === 'mancha') return;
+      // Mancha layer: custom legend entry
+      if (l.id === 'mac_mancha' && activeLayers[l.id]) {
+        html += '<div><span style="display:inline-block;width:16px;height:14px;background:' + l.color + ';margin-right:8px;vertical-align:middle;opacity:' + (l.fillOpacity || 0.12) + ';border:1px solid ' + l.color + '"></span><strong>\u00c1rea da Macrorregi\u00e3o</strong></div>';
+        return;
+      }
       if (activeLayers[l.id]) {
         if (l.submenu && subLayers[l.id]) {
           var sl = subLayers[l.id];
@@ -1158,13 +1162,14 @@ function lockMapView() {
 }
 function unlockMapView() {
   if (!mapInstance) return;
-  mapInstance.dragging.enable();
-  mapInstance.scrollWheelZoom.enable();
-  mapInstance.touchZoom.enable();
-  mapInstance.doubleClickZoom.enable();
-  mapInstance.boxZoom.enable();
-  mapInstance.keyboard.enable();
-  if (mapInstance.tap) mapInstance.tap.enable();
+  // Re-enable all interactions
+  if (mapInstance.dragging) { mapInstance.dragging.enable(); }
+  if (mapInstance.scrollWheelZoom) { mapInstance.scrollWheelZoom.enable(); }
+  if (mapInstance.touchZoom) { mapInstance.touchZoom.enable(); }
+  if (mapInstance.doubleClickZoom) { mapInstance.doubleClickZoom.enable(); }
+  if (mapInstance.boxZoom) { mapInstance.boxZoom.enable(); }
+  if (mapInstance.keyboard) { mapInstance.keyboard.enable(); }
+  if (mapInstance.tap) { mapInstance.tap.enable(); }
 }
 
 /* ============================================================
@@ -1259,10 +1264,10 @@ function enableSubpageMode() {
   // Enable map interaction immediately
   unlockMapView();
 
-  // Restore saved subpage view or fly to default
+  // Restore saved subpage view or fly to default (ignore view with zoom < 8)
   var savedSubpageView = null;
   try { var sv = localStorage.getItem('pensarbahia_subpage_view'); if (sv) savedSubpageView = JSON.parse(sv); } catch(e) {}
-  if (savedSubpageView) {
+  if (savedSubpageView && savedSubpageView.zoom >= 8) {
     mapInstance.setView(savedSubpageView.center, savedSubpageView.zoom);
   } else {
     mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
@@ -1308,12 +1313,26 @@ function enableSubpageMode() {
         var zoom = i < 5 ? 12 : 13;
         var timer = setTimeout(function() {
           mapInstance.addLayer(circle);
+          var c = circle.getLatLng();
+          mapInstance.flyTo(c, zoom, { duration: 1.5 });
           circle.openTooltip();
           var closeTimer = setTimeout(function() { circle.closeTooltip(); }, 1500);
           _staggerTimers.push(closeTimer);
         }, delay);
         _staggerTimers.push(timer);
       });
+      // Return to full macrorregião view after last circle
+      var totalDelay = (5 * blueDelay) + (6 * pinkDelay) + 800;
+      var returnTimer = setTimeout(function() {
+        var sv;
+        try { sv = JSON.parse(localStorage.getItem('pensarbahia_subpage_view')); } catch(e) {}
+        if (sv && sv.zoom >= 8) {
+          mapInstance.setView(sv.center, sv.zoom);
+        } else {
+          mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
+        }
+      }, totalDelay);
+      _staggerTimers.push(returnTimer);
     }
   }
 
@@ -1884,17 +1903,17 @@ var PRESENTATION_STEPS = [
   { slide: 1, layers: ['int_brasil', 'int_bahia', 'int_cidades', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul', 'route_fico'], video: '1.mp4' },
 
   // Slide 3 — Macrorregião
-  { slide: 3, layers: ['mac_cidades'], video: '6.mp4' },
-  { slide: 3, layers: ['mac_cidades'], video: '6.mp4',
+  { slide: 3, layers: ['mac_mancha'], video: '6.mp4' },
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades'], video: '6.mp4' },
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades'], video: '6.mp4',
     subItems: { 'mac_vias': ['RODOVIAS'] } },
-  { slide: 3, layers: ['mac_cidades'], video: '6.mp4',
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades'], video: '6.mp4',
     subItems: { 'mac_vias': ['RODOVIAS', 'PONTE'] } },
-  { slide: 3, layers: ['mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4' },
-  { slide: 3, layers: ['mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4',
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4' },
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4',
     subItems: { 'mac_vias': ['RODOVIAS', 'PONTE', 'RODOVIA NAZARÉ-VALENÇA'] } },
-  { slide: 3, layers: ['mac_cidades', 'mac_vias', 'mac_ferrovias', 'mac_circulo', 'mac_mancha'], video: '8.mp4',
-    subItems: { 'mac_vias': ['RODOVIAS', 'PONTE', 'RODOVIA NAZARÉ-VALENÇA'] },
-    manchaDelay: 1500 },
+  { slide: 3, layers: ['mac_cidades', 'mac_vias', 'mac_ferrovias', 'mac_circulo'], video: '8.mp4',
+    subItems: { 'mac_vias': ['RODOVIAS', 'PONTE', 'RODOVIA NAZARÉ-VALENÇA'] } },
 
   // Slide 4 — Parque BTS
   { slide: 4, layers: ['bts_circulo_fixo'], video: '9.mp4' },
@@ -2295,10 +2314,19 @@ document.addEventListener('keydown', function(e) {
     if (currentSlide === 5) return;
 
     if (e.key === 'ArrowRight') {
-      // Stop auto-play, advance one step
       stopAutoPlay();
-      var nextIdx = currentStep + 1;
-      if (nextIdx >= PRESENTATION_STEPS.length) { e.preventDefault(); return; }
+      var nextIdx;
+      if (currentStep === -1) {
+        // Find first step for current slide
+        for (var si = 0; si < PRESENTATION_STEPS.length; si++) {
+          if (PRESENTATION_STEPS[si].slide === currentSlide) { nextIdx = si; break; }
+        }
+        if (nextIdx === undefined) { e.preventDefault(); return; }
+      } else {
+        nextIdx = currentStep + 1;
+        if (nextIdx >= PRESENTATION_STEPS.length) { e.preventDefault(); return; }
+      }
+      if (PRESENTATION_STEPS[nextIdx].slide !== currentSlide) { e.preventDefault(); return; }
       goToPresentationStep(nextIdx);
       e.preventDefault();
       return;
@@ -2308,8 +2336,9 @@ document.addEventListener('keydown', function(e) {
       stopAutoPlay();
       if (currentStep === -1) { e.preventDefault(); return; }
       var prevIdx = currentStep - 1;
-      if (prevIdx < 0) { goToPresentationStep(0); currentStep = -1; }
-      else { goToPresentationStep(prevIdx); }
+      if (prevIdx < 0) { e.preventDefault(); return; }
+      if (PRESENTATION_STEPS[prevIdx].slide !== currentSlide) { e.preventDefault(); return; }
+      goToPresentationStep(prevIdx);
       e.preventDefault();
       return;
     }
@@ -2348,7 +2377,7 @@ document.addEventListener('keydown', function(e) {
   
   // After last video of slide, right arrow goes to next slide
   if (e.key === 'ArrowRight') {
-    var slideLastVideo = { 1: '2.mp4', 2: '5.mp4', 3: '8.mp4' };
+    var slideLastVideo = { 1: '2.mp4', 2: '5.mp4', 3: '8.mp4', 4: '11.mp4' };
     var lastVid = slideLastVideo[currentSlide];
     if (lastVid) {
       var curVid = document.querySelectorAll('.video-overlay');
