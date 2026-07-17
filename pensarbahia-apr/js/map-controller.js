@@ -1729,6 +1729,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Migrate: clear old keys (bad data from previous bugs)
   try { localStorage.removeItem('pensarbahia_slide4_view'); } catch(e) {}
   try { localStorage.removeItem('pensarbahia_slide3_view'); } catch(e) {}
+  // Reset slide 4 position on every load to prevent corrupted data
+  try { localStorage.removeItem('pensarbahia_slide4_pos'); } catch(e) {}
   initMap();
   lockMapView();
   buildPageLayers();
