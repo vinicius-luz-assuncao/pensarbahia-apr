@@ -266,14 +266,18 @@ function loadLayer(lc) {
 
         // Add label if circleLabel is defined
         if (lc.circleLabel) {
+          var lblPos = lc.circleLabelPosition || 'north';
           var offLat2 = 0, offLng2 = 0;
           if (radius > 0) {
             var R2 = 6371000;
             var latRad2 = center.lat * Math.PI / 180;
-            offLat2 = radius / R2 * (180 / Math.PI) * 0.6;
-            offLng2 = radius / (R2 * Math.cos(latRad2)) * (180 / Math.PI) * 0.6;
+            var dist = radius / R2 * (180 / Math.PI) * 0.6;
+            if (lblPos === 'north') { offLat2 = dist; }
+            else if (lblPos === 'south') { offLat2 = -dist; }
+            else if (lblPos === 'east') { offLng2 = dist; }
+            else if (lblPos === 'west') { offLng2 = -dist; }
           }
-          var label = L.marker([center.lat + offLat2, center.lng], {
+          var label = L.marker([center.lat + offLat2, center.lng + offLng2], {
             icon: L.divIcon({
               className: 'route-label',
               html: '<span style="display:inline-block;background:' + color + ';color:#fff;padding:1px 8px;border-radius:3px;font-size:11px;font-weight:700;white-space:nowrap;border:1px solid rgba(0,0,0,0.3);box-shadow:0 1px 4px rgba(0,0,0,0.3)">' + lc.circleLabel + '</span>',
