@@ -161,23 +161,27 @@ const LAYER_GROUPS = [
         id: 'bts_ferrovias', label: 'Ferrovias',
         file: 'data/PARQUE LOGISTICO.geojson',
         type: 'bts', nameFilter: 'FERROVIA', color: '#8b0000', submenu: true, weight: 5,
-        legendLabel: 'Ferrovia'
+        legendLabel: 'Ferrovia',
+        labelPosition: [-12.73, -38.42]
       },
       {
         id: 'bts_rodovias', label: 'Rodovias',
         file: 'data/PARQUE LOGISTICO.geojson',
         type: 'bts', nameFilter: 'RODOVIA', color: '#000000', submenu: true, weight: 5,
-        legendLabel: 'Rodovia'
+        legendLabel: 'Rodovia',
+        labelPosition: [-12.79, -38.44]
       },
       {
         id: 'bts_circulo_fixo', label: '\u00c1rea CIA NORTE E SUL',
         type: 'circle-editor', center: [-12.75421, -38.43224], radius: 14849,
-        color: '#f39c12', weight: 2, fixed: true
+        color: '#f39c12', weight: 2, fixed: true,
+        circleLabel: '\u00c1REA CIA NORTE E SUL'
       },
       {
         id: 'cia_norte_circle', label: 'C\u00edrculo CIA NORTE',
         type: 'circle-editor', center: [-12.7833, -38.4667], radius: 5000,
-        color: '#3498db', weight: 2
+        color: '#3498db', weight: 2,
+        circleLabel: 'CIA NORTE'
       }
     ]
   },

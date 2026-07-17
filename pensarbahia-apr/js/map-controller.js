@@ -264,6 +264,26 @@ function loadLayer(lc) {
           });
         }
 
+        // Add label if circleLabel is defined
+        if (lc.circleLabel) {
+          var offLat2 = 0, offLng2 = 0;
+          if (radius > 0) {
+            var R2 = 6371000;
+            var latRad2 = center.lat * Math.PI / 180;
+            offLat2 = radius / R2 * (180 / Math.PI) * 0.6;
+            offLng2 = radius / (R2 * Math.cos(latRad2)) * (180 / Math.PI) * 0.6;
+          }
+          var label = L.marker([center.lat + offLat2, center.lng], {
+            icon: L.divIcon({
+              className: 'route-label',
+              html: '<span style="display:inline-block;background:' + color + ';color:#fff;padding:3px 12px;border-radius:4px;font-size:14px;font-weight:700;white-space:nowrap;border:1px solid rgba(0,0,0,0.3);box-shadow:0 1px 4px rgba(0,0,0,0.3)">' + lc.circleLabel + '</span>',
+              iconSize: [0, 0],
+              iconAnchor: [0, 0]
+            })
+          });
+          group.addLayer(label);
+        }
+
         if (activeLayers[lc.id]) mapInstance.addLayer(group);
       })(lc);
       break;
@@ -528,6 +548,20 @@ function loadBTS(lc) {
             onEachFeature: function(feat, layer) { var n = feat.properties.name || feat.properties.Nome || ''; if (n) layer.bindPopup(n); }
           });
         });
+      }
+      // Add label for submenu layers if labelPosition is defined
+      if (lc.labelPosition) {
+        mapLayers[lc.id] = L.layerGroup();
+        var lblSubColor = lc.color || '#333';
+        var label = L.marker(lc.labelPosition, {
+          icon: L.divIcon({
+            className: 'route-label',
+            html: '<span style="display:inline-block;background:' + lblSubColor + ';color:#fff;padding:2px 10px;border-radius:4px;font-size:13px;font-weight:700;white-space:nowrap;border:1px solid rgba(0,0,0,0.3);box-shadow:0 1px 3px rgba(0,0,0,0.3)">' + (lc.label || lc.id) + '</span>',
+            iconSize: [0, 0],
+            iconAnchor: [0, 0]
+          })
+        });
+        mapLayers[lc.id].addLayer(label);
       }
     } else {
       var geoLayer = L.geoJSON({ type: 'FeatureCollection', features: features }, {
@@ -1581,7 +1615,7 @@ function showCiaNorteCircle(callback) {
       var r = circle.getRadius();
       if (r > 0 && c.lat !== 0 && c.lng !== 0) {
         mapInstance.flyTo(c, Math.max(14, Math.min(17, 15 - Math.log(r / 5000) / Math.LN2)), { duration: 1.5 });
-        mapInstance.once('moveend', function() { if (callback) callback(); });
+        mapInstance.once('moveend', function() { setTimeout(function() { if (callback) callback(); }, 2500); });
         return;
       }
     }
