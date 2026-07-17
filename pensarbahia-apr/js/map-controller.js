@@ -1106,8 +1106,12 @@ function switchSlide(index) {
   syncVideoOverlayState(currentSlide);
   saveVideoOverlays(currentSlide);
   document.querySelectorAll('.video-overlay').forEach(function(v) { v.remove(); });
-  // Disable subpage mode when leaving slide 4
-  if (currentSlide === 4) { disableSubpageMode(); }
+  // Disable subpage mode and CIA circle edit when leaving slide 4
+  if (currentSlide === 4) {
+    if (_ciaCircleEditMode) toggleCiaCircleEdit(false);
+    if (activeLayers['cia_norte_circle']) toggleLayer('cia_norte_circle');
+    disableSubpageMode();
+  }
   // Save Bahia image position when leaving slide 2
   if (currentSlide === 2) {
     var container = document.getElementById('bahia-drag-container');
@@ -1445,6 +1449,10 @@ function disableSubpageMode() {
     }
   });
 
+  // Deactivate CIA NORTE circle if active
+  if (activeLayers['cia_norte_circle']) toggleLayer('cia_norte_circle');
+  if (_ciaCircleEditMode) toggleCiaCircleEdit(false);
+
   _dontSaveNextMove = true;
   mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
   mapInstance.once('moveend', function() {
@@ -1496,6 +1504,8 @@ function buildGallery() {
   grid.innerHTML = html;
 }
 
+var _ciaCircleEditMode = false;
+
 function toggleCiaNorte(open) {
   var overlay = document.getElementById('cia-norte-overlay');
   var backdrop = document.getElementById('cia-norte-backdrop');
@@ -1505,6 +1515,74 @@ function toggleCiaNorte(open) {
   if (backdrop) backdrop.classList.toggle('open', isOpen);
   var legend = document.querySelector('.map-legend');
   if (legend) legend.style.display = isOpen ? 'none' : '';
+}
+
+function toggleCiaCircleEdit(enable) {
+  if (enable) {
+    _ciaCircleEditMode = true;
+    if (!activeLayers['cia_norte_circle']) toggleLayer('cia_norte_circle');
+    var banner = document.getElementById('cia-circle-edit-banner') || (function() {
+      var b = document.createElement('div');
+      b.id = 'cia-circle-edit-banner';
+      b.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;background:#3498db;color:#fff;padding:12px 24px;border-radius:8px;font-size:15px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.3);pointer-events:none';
+      document.body.appendChild(b);
+      return b;
+    })();
+    banner.textContent = 'Clique no mapa para posicionar o c\u00edrculo, arraste para mover, arraste o ponto na borda para redimensionar. [Esc] sair';
+    banner.style.display = 'block';
+    var saved = null;
+    try { saved = localStorage.getItem('pensarbahia_circle_cia_norte_circle'); } catch(e) {}
+    if (!saved && !ciaCirclePlacedOnce) {
+      mapInstance.on('click', _placeCiaCircle);
+    }
+  } else {
+    _ciaCircleEditMode = false;
+    var banner = document.getElementById('cia-circle-edit-banner');
+    if (banner) banner.style.display = 'none';
+    mapInstance.off('click', _placeCiaCircle);
+    if (activeLayers['cia_norte_circle']) toggleLayer('cia_norte_circle');
+  }
+}
+
+var ciaCirclePlacedOnce = false;
+
+function _placeCiaCircle(e) {
+  var group = mapLayers['cia_norte_circle'];
+  if (!group) return;
+  var circle = null, resizer = null;
+  group.eachLayer(function(l) {
+    if (l instanceof L.Circle) circle = l;
+    else resizer = l;
+  });
+  if (!circle) return;
+  circle.setLatLng(e.latlng);
+  circle.setRadius(1000);
+  if (resizer) {
+    var R = 6371000, lat = e.latlng.lat * Math.PI / 180, d = 1000 / R;
+    resizer.setLatLng(L.latLng(e.latlng.lat, e.latlng.lng + d / Math.cos(lat) * 180 / Math.PI));
+  }
+  try { localStorage.setItem('pensarbahia_circle_cia_norte_circle', JSON.stringify({ center: [e.latlng.lat, e.latlng.lng], radius: 1000 })); } catch(err) {}
+  ciaCirclePlacedOnce = true;
+  mapInstance.off('click', _placeCiaCircle);
+}
+
+function showCiaNorteCircle(callback) {
+  if (!activeLayers['cia_norte_circle']) toggleLayer('cia_norte_circle');
+  var group = mapLayers['cia_norte_circle'];
+  if (group) {
+    var circle = null;
+    group.eachLayer(function(l) { if (l instanceof L.Circle) circle = l; });
+    if (circle) {
+      var c = circle.getLatLng();
+      var r = circle.getRadius();
+      if (r > 0 && c.lat !== 0 && c.lng !== 0) {
+        mapInstance.flyTo(c, Math.max(14, Math.min(17, 15 - Math.log(r / 5000) / Math.LN2)), { duration: 1.5 });
+        mapInstance.once('moveend', function() { if (callback) callback(); });
+        return;
+      }
+    }
+  }
+  if (callback) callback();
 }
 
 function toggleGallery(open, sequential) {
@@ -1783,6 +1861,17 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(msg);
         setTimeout(function() { msg.remove(); }, 2500);
       }
+    }
+    // C: toggle CIA NORTE circle edit mode (slide 4 only)
+    if (e.key === 'c' || e.key === 'C') {
+      if (currentSlide === 4) {
+        e.preventDefault();
+        toggleCiaCircleEdit(!_ciaCircleEditMode);
+      }
+    }
+    // Esc: exit edit mode
+    if (e.key === 'Escape' && _ciaCircleEditMode) {
+      toggleCiaCircleEdit(false);
     }
   });
 });
@@ -2149,7 +2238,7 @@ function goToPresentationStep(idx) {
 
   // Open CIA NORTE gallery after last step of slide 4, video 9
   if (step.slide === 4 && step.video === '9.mp4' && step.layers.indexOf('bts_rodovias') !== -1) {
-    setTimeout(function() { toggleCiaNorte(true); }, 5000);
+    setTimeout(function() { showCiaNorteCircle(function() { toggleCiaNorte(true); }); }, 5000);
   }
 
   currentStep = idx;
@@ -2483,7 +2572,7 @@ document.addEventListener('keydown', function(e) {
   }
   if (currentSlide === 4) {
     toggleCiaNorte(false);
-    if (newFile === '10.mp4') { toggleGallery(true, true); disableSubpageMode(); }
+    if (newFile === '10.mp4') { disableSubpageMode(); showCiaNorteCircle(function() { toggleGallery(true, true); }); }
     else if (newFile === '11.mp4') { toggleGallery(false); currentStep = -1; enableSubpageMode(); }
     else { toggleGallery(false); disableSubpageMode(); }
   }

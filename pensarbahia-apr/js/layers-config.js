@@ -173,6 +173,11 @@ const LAYER_GROUPS = [
         id: 'bts_circulo_fixo', label: '\u00c1rea CIA NORTE E SUL',
         type: 'circle-editor', center: [-12.75421, -38.43224], radius: 14849,
         color: '#f39c12', weight: 2
+      },
+      {
+        id: 'cia_norte_circle', label: 'C\u00edrculo CIA NORTE',
+        type: 'circle-editor', center: [-12.7833, -38.4667], radius: 5000,
+        color: '#3498db', weight: 2
       }
     ]
   },
