@@ -276,7 +276,7 @@ function loadLayer(lc) {
           var label = L.marker([center.lat + offLat2, center.lng], {
             icon: L.divIcon({
               className: 'route-label',
-              html: '<span style="display:inline-block;background:' + color + ';color:#fff;padding:3px 12px;border-radius:4px;font-size:14px;font-weight:700;white-space:nowrap;border:1px solid rgba(0,0,0,0.3);box-shadow:0 1px 4px rgba(0,0,0,0.3)">' + lc.circleLabel + '</span>',
+              html: '<span style="display:inline-block;background:' + color + ';color:#fff;padding:1px 8px;border-radius:3px;font-size:11px;font-weight:700;white-space:nowrap;border:1px solid rgba(0,0,0,0.3);box-shadow:0 1px 4px rgba(0,0,0,0.3)">' + lc.circleLabel + '</span>',
               iconSize: [0, 0],
               iconAnchor: [0, 0]
             })
