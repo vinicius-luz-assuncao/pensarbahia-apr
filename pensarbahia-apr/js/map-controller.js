@@ -543,29 +543,36 @@ function loadBTS(lc) {
       mapLayers[lc.id].addLayer(geoLayer);
       // Add route label for non-submenu line layers
       if (lc.subtype === 'line' && lc.label) {
-        var bestCoords = null, bestLen = 0;
-        features.forEach(function(f) {
-          var segs = [];
-          if (f.geometry.type === 'LineString') segs = [f.geometry.coordinates];
-          else if (f.geometry.type === 'MultiLineString') segs = f.geometry.coordinates;
-          segs.forEach(function(c) {
-            if (c.length > bestLen) { bestLen = c.length; bestCoords = c; }
+        var labelLat, labelLng;
+        if (lc.labelPosition) {
+          labelLat = lc.labelPosition[0];
+          labelLng = lc.labelPosition[1];
+        } else {
+          var bestCoords = null, bestLen = 0;
+          features.forEach(function(f) {
+            var segs = [];
+            if (f.geometry.type === 'LineString') segs = [f.geometry.coordinates];
+            else if (f.geometry.type === 'MultiLineString') segs = f.geometry.coordinates;
+            segs.forEach(function(c) {
+              if (c.length > bestLen) { bestLen = c.length; bestCoords = c; }
+            });
           });
-        });
-        if (bestCoords) {
+          if (!bestCoords) return;
           var midCoord = bestCoords[Math.floor(bestCoords.length / 2)];
-          var lblColor = lc.color || '#333';
-          var label = L.marker([midCoord[1], midCoord[0]], {
-            icon: L.divIcon({
-              className: 'route-label',
-              html: '<span style="display:inline-block;background:' + lblColor + ';color:#fff;padding:2px 8px;border-radius:3px;font-size:12px;font-weight:700;white-space:nowrap;border:1px solid rgba(0,0,0,0.3);box-shadow:0 1px 3px rgba(0,0,0,0.3)">' + lc.label + '</span>',
-              iconSize: [0, 0],
-              iconAnchor: [0, 0]
-            })
-          });
-          routeLabelStore.labels.push(label);
-          mapLayers[lc.id].addLayer(label);
+          labelLat = midCoord[1];
+          labelLng = midCoord[0];
         }
+        var lblColor = lc.color || '#333';
+        var label = L.marker([labelLat, labelLng], {
+          icon: L.divIcon({
+            className: 'route-label',
+            html: '<span style="display:inline-block;background:' + lblColor + ';color:#fff;padding:2px 8px;border-radius:3px;font-size:12px;font-weight:700;white-space:nowrap;border:1px solid rgba(0,0,0,0.3);box-shadow:0 1px 3px rgba(0,0,0,0.3)">' + lc.label + '</span>',
+            iconSize: [0, 0],
+            iconAnchor: [0, 0]
+          })
+        });
+        routeLabelStore.labels.push(label);
+        mapLayers[lc.id].addLayer(label);
       }
     }
     // Add extra points (e.g., cities not in the GeoJSON)

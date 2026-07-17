@@ -137,11 +137,12 @@ const LAYER_GROUPS = [
         }
       },
       {
-        id: 'mac_ferrovias', label: 'Plano ferrovi\u00e1rio',
+        id: 'mac_ferrovias', label: 'PLANO FERROVI\u00c1RIO',
         file: 'data/ferroviasmacrorregiao.geojson',
         type: 'bts', subtype: 'line',
         color: '#8b0000', weight: 5,
-        legendLabel: 'Ferrovia'
+        legendLabel: 'Ferrovia',
+        labelPosition: [-12.266, -38.966]
       },
       {
         id: 'mac_circulo', label: 'Complexos portu\u00e1rios',
