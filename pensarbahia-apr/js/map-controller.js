@@ -1227,9 +1227,9 @@ function switchSlide(index) {
     } else if (index === 5) {
       mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
     }
-    // Unlock map — user reposiciona
+    // Lock map after flyTo for all slides
     mapInstance.once('moveend', function() {
-      unlockMapView();
+      lockMapView();
     });
     setTimeout(function() { mapInstance.invalidateSize(); }, 200);
   }
