@@ -2386,7 +2386,40 @@ document.addEventListener('keydown', function(e) {
         if (cv && videoFileFromSrc(cv.src) === lastVid) {
           e.preventDefault();
           currentStep = -1;
-          switchSlide(currentSlide + 1);
+          if (currentSlide < 5) switchSlide(currentSlide + 1);
+          return;
+        }
+      }
+    }
+  }
+  // After first video of slide, left arrow goes to previous slide (last video of prev slide)
+  if (e.key === 'ArrowLeft') {
+    var slideFirstVideo = { 1: '1.mp4', 2: '3.mp4', 3: '6.mp4', 4: '9.mp4' };
+    var firstVid = slideFirstVideo[currentSlide];
+    if (firstVid) {
+      var curVid = document.querySelectorAll('.video-overlay');
+      if (curVid.length) {
+        var cv = curVid[0].querySelector('video');
+        if (cv && videoFileFromSrc(cv.src) === firstVid) {
+          e.preventDefault();
+          currentStep = -1;
+          if (currentSlide > 0) {
+            var prevSlide = currentSlide - 1;
+            switchSlide(prevSlide);
+            // Load last video of the target slide
+            var slideLastVideo = { 1: '2.mp4', 2: '5.mp4', 3: '8.mp4', 4: '11.mp4' };
+            var targetVid = slideLastVideo[prevSlide];
+            if (targetVid && prevSlide >= 1 && prevSlide <= 4) {
+              var overlays = document.querySelectorAll('.video-overlay');
+              if (overlays.length) {
+                var video = overlays[0].querySelector('video');
+                if (video) {
+                  video.src = videoUrl(targetVid);
+                  video.play().catch(function(){});
+                }
+              }
+            }
+          }
           return;
         }
       }
