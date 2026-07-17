@@ -1328,13 +1328,11 @@ function enableSubpageMode() {
     mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
   }
 
-  // Dim macrorregião layers (already active from background)
-  ['mac_mancha', 'mac_ferrovias', 'mac_vias'].forEach(function(id) {
+  // Dim all macrorregião layers (already active from background)
+  ['mac_mancha', 'mac_ferrovias', 'mac_cidades', 'mac_circulo'].forEach(function(id) {
     if (activeLayers[id]) {
-      if (id !== 'mac_vias') {
-        saveLayerOptions(id);
-        dimLayer(id, 0.15);
-      }
+      saveLayerOptions(id);
+      dimLayer(id, 0.15);
     }
   });
   if (activeLayers['mac_vias']) {
@@ -1376,14 +1374,13 @@ function enableSubpageMode() {
         }, delay);
         _staggerTimers.push(timer);
       });
-      // Return to full macrorregião view after last circle
+      // Return to full macrorregião view after last circle (medium opacity)
       var totalDelay = (5 * blueDelay) + (6 * pinkDelay) + 800;
       var returnTimer = setTimeout(function() {
-        // Restore macrorregião layers (undim)
-        ['mac_mancha', 'mac_ferrovias'].forEach(function(id) {
-          if (activeLayers[id]) restoreLayerOptions(id);
+        ['mac_mancha', 'mac_ferrovias', 'mac_cidades', 'mac_circulo'].forEach(function(id) {
+          if (activeLayers[id]) dimLayer(id, 0.6);
         });
-        restoreSubItemOptions('mac_vias');
+        if (activeLayers['mac_vias']) dimSubItems('mac_vias', 0.7);
         // Zoom out to show macrorregião with circles
         mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
       }, totalDelay);
@@ -2233,46 +2230,7 @@ function createVideoOverlay(slideIdx, data) {
 
   wrapper.appendChild(box);
 
-  // Drag
-  var dragging = false, startX, startY, origX, origY;
-  box.addEventListener('mousedown', function(e) {
-    dragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    origX = box.offsetLeft;
-    origY = box.offsetTop;
-    e.preventDefault();
-  });
-  document.addEventListener('mousemove', function(e) {
-    if (!dragging) return;
-    box.style.left = (origX + e.clientX - startX) + 'px';
-    box.style.top = (origY + e.clientY - startY) + 'px';
-  });
-  document.addEventListener('mouseup', function() {
-    if (!dragging) return;
-    dragging = false;
-    var entry = {
-      id: id,
-      file: box.querySelector('video') ? videoFileFromSrc(box.querySelector('video').src) : (SLIDE_VIDEOS[currentSlide] || SLIDE_VIDEOS[1])[0],
-      left: parseInt(box.style.left) || box.offsetLeft || 0,
-      top: parseInt(box.style.top) || box.offsetTop || 0,
-      width: parseInt(box.style.width) || box.offsetWidth || 300,
-      height: parseInt(box.style.height) || box.offsetHeight || 200
-    };
-    try {
-      var val = JSON.stringify([entry]);
-      localStorage.setItem('pensarbahia_videos_' + currentSlide, val);
-      console.log('MOUSEUP save slide ' + currentSlide + ':', val);
-    } catch(e) { console.error('MOUSEUP save error:', e); }
-    if (!videoOverlays[currentSlide]) videoOverlays[currentSlide] = [];
-    var found = false;
-    for (var i = 0; i < videoOverlays[currentSlide].length; i++) {
-      if (videoOverlays[currentSlide][i].id === id) { videoOverlays[currentSlide][i] = entry; found = true; break; }
-    }
-    if (!found) videoOverlays[currentSlide].push(entry);
-  });
-
-  // Save to state
+  // Save to state (fixed position, no drag)
   if (!videoOverlays[slideIdx]) videoOverlays[slideIdx] = [];
   videoOverlays[slideIdx].push({ id: id, file: file, left: parseInt(box.style.left) || box.offsetLeft || 0, top: parseInt(box.style.top) || box.offsetTop || 0, width: parseInt(box.style.width) || box.offsetWidth || 300, height: parseInt(box.style.height) || box.offsetHeight || 200 });
   saveVideoOverlays(slideIdx);

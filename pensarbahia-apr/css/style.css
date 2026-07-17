@@ -1111,7 +1111,6 @@ html, body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  resize: both;
 }
 .video-overlay:hover { border-color: rgba(255,255,255,0.3); }
 .video-overlay video {
