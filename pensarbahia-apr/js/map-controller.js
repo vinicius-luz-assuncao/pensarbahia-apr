@@ -1227,9 +1227,9 @@ function switchSlide(index) {
     } else if (index === 3) {
       mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
     } else if (index === 4) {
-      mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
+      mapInstance.flyTo([-12.76878, -38.42], 12, { duration: 2 });
     } else if (index === 5) {
-      mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
+      mapInstance.flyTo([-12.76878, -38.42], 12, { duration: 2 });
     }
     // Lock map after flyTo for all slides
     mapInstance.once('moveend', function() {
@@ -1498,7 +1498,7 @@ function disableSubpageMode() {
   if (_ciaCircleEditMode) toggleCiaCircleEdit(false);
 
   _dontSaveNextMove = true;
-  mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
+  mapInstance.flyTo([-12.76878, -38.42], 12, { duration: 2 });
   mapInstance.once('moveend', function() {
     if (currentSlide === 4) { lockMapView(); }
   });
