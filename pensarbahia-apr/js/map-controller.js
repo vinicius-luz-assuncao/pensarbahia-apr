@@ -1328,14 +1328,25 @@ function enableSubpageMode() {
     mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
   }
 
-  // Dim all macrorregião layers (already active from background)
+  // Activate and dim macrorregião layers
   ['mac_mancha', 'mac_ferrovias', 'mac_cidades', 'mac_circulo'].forEach(function(id) {
-    if (activeLayers[id]) {
-      saveLayerOptions(id);
-      dimLayer(id, 0.15);
+    if (!activeLayers[id]) {
+      toggleLayer(id);
+      _wasToggledBySubpage[id] = true;
     }
+    saveLayerOptions(id);
+    dimLayer(id, 0.15);
   });
-  if (activeLayers['mac_vias']) {
+  // Activate mac_vias sub-items and dim them
+  if (subLayers['mac_vias']) {
+    if (!activeLayers['mac_vias']) {
+      toggleLayer('mac_vias');
+      _wasToggledBySubpage['mac_vias'] = true;
+    }
+    var sl = subLayers['mac_vias'];
+    Object.keys(sl.items).forEach(function(itemId) {
+      if (!sl.active[itemId]) toggleSubItem('mac_vias', itemId);
+    });
     saveSubItemOptions('mac_vias');
     dimSubItems('mac_vias', 0.3);
   }
@@ -1420,7 +1431,7 @@ function disableSubpageMode() {
   }
 
   // Restore macrorregião layers
-  ['mac_mancha', 'mac_ferrovias', 'mac_vias'].forEach(function(id) {
+  ['mac_mancha', 'mac_ferrovias', 'mac_vias', 'mac_cidades', 'mac_circulo'].forEach(function(id) {
     if (_wasToggledBySubpage[id]) {
       toggleLayer(id);
       delete _wasToggledBySubpage[id];
