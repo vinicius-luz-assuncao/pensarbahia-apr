@@ -1606,21 +1606,7 @@ function _placeCiaCircle(e) {
 
 function showCiaNorteCircle(callback) {
   if (!activeLayers['cia_norte_circle']) toggleLayer('cia_norte_circle');
-  var group = mapLayers['cia_norte_circle'];
-  if (group) {
-    var circle = null;
-    group.eachLayer(function(l) { if (l instanceof L.Circle) circle = l; });
-    if (circle) {
-      var c = circle.getLatLng();
-      var r = circle.getRadius();
-      if (r > 0 && c.lat !== 0 && c.lng !== 0) {
-        mapInstance.flyTo(c, Math.max(14, Math.min(17, 15 - Math.log(r / 5000) / Math.LN2)), { duration: 1.5 });
-        mapInstance.once('moveend', function() { setTimeout(function() { if (callback) callback(); }, 2500); });
-        return;
-      }
-    }
-  }
-  if (callback) callback();
+  setTimeout(function() { if (callback) callback(); }, 2500);
 }
 
 function toggleGallery(open, sequential) {
