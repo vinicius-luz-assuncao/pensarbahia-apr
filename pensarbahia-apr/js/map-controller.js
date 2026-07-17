@@ -1170,7 +1170,7 @@ function switchSlide(index) {
     // Lock map before flyTo to prevent interruption
     lockMapView();
     var savedView = null;
-    try { var v = localStorage.getItem('pensarbahia_slide' + index + '_view'); if (v) savedView = JSON.parse(v); } catch(e) {}
+    try { var v = localStorage.getItem('pensarbahia_slide' + index + '_pos'); if (v) savedView = JSON.parse(v); } catch(e) {}
     if (savedView) {
       mapInstance.flyTo(savedView.center, savedView.zoom, { duration: 1.5 });
     } else if (index === 1) {
@@ -1615,6 +1615,9 @@ function restoreGalleryState() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Migrate: clear old keys (bad data from previous bugs)
+  try { localStorage.removeItem('pensarbahia_slide4_view'); } catch(e) {}
+  try { localStorage.removeItem('pensarbahia_slide3_view'); } catch(e) {}
   initMap();
   lockMapView();
   buildPageLayers();
@@ -1917,7 +1920,7 @@ document.addEventListener('keydown', function(e) {
     var c = mapInstance.getCenter();
     var z = mapInstance.getZoom();
     try {
-      localStorage.setItem('pensarbahia_slide' + currentSlide + '_view', JSON.stringify({ center: [c.lat, c.lng], zoom: z }));
+    localStorage.setItem('pensarbahia_slide' + currentSlide + '_pos', JSON.stringify({ center: [c.lat, c.lng], zoom: z }));
     } catch(e) {}
     alert('View do slide ' + currentSlide + ' salva!');
   }
