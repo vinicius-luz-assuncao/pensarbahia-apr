@@ -1351,13 +1351,13 @@ function enableSubpageMode() {
       // Return to full macrorregião view after last circle
       var totalDelay = (5 * blueDelay) + (6 * pinkDelay) + 800;
       var returnTimer = setTimeout(function() {
-        var sv;
-        try { sv = JSON.parse(localStorage.getItem('pensarbahia_subpage_view')); } catch(e) {}
-        if (sv && sv.zoom >= 8) {
-          mapInstance.setView(sv.center, sv.zoom);
-        } else {
-          mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
-        }
+        // Restore macrorregião layers (undim)
+        ['mac_mancha', 'mac_ferrovias'].forEach(function(id) {
+          if (activeLayers[id]) restoreLayerOptions(id);
+        });
+        restoreSubItemOptions('mac_vias');
+        // Zoom out to show macrorregião with circles
+        mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
       }, totalDelay);
       _staggerTimers.push(returnTimer);
     }
