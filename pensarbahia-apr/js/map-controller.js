@@ -1328,29 +1328,6 @@ function enableSubpageMode() {
     mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
   }
 
-  // Activate and dim macrorregião layers
-  ['mac_mancha', 'mac_ferrovias', 'mac_cidades', 'mac_circulo'].forEach(function(id) {
-    if (!activeLayers[id]) {
-      toggleLayer(id);
-      _wasToggledBySubpage[id] = true;
-    }
-    saveLayerOptions(id);
-    dimLayer(id, 0.15);
-  });
-  // Activate mac_vias sub-items and dim them
-  if (subLayers['mac_vias']) {
-    if (!activeLayers['mac_vias']) {
-      toggleLayer('mac_vias');
-      _wasToggledBySubpage['mac_vias'] = true;
-    }
-    var sl = subLayers['mac_vias'];
-    Object.keys(sl.items).forEach(function(itemId) {
-      if (!sl.active[itemId]) toggleSubItem('mac_vias', itemId);
-    });
-    saveSubItemOptions('mac_vias');
-    dimSubItems('mac_vias', 0.3);
-  }
-
   // Turn off bts_ferrovias and bts_rodovias (Parque Logístico)
   ['bts_ferrovias', 'bts_rodovias'].forEach(function(id) {
     if (activeLayers[id]) {
@@ -1385,15 +1362,34 @@ function enableSubpageMode() {
         }, delay);
         _staggerTimers.push(timer);
       });
-      // Return to full macrorregião view after last circle (medium opacity)
+      // After last circle, zoom out and activate macrorregião layers (low opacity)
       var totalDelay = (5 * blueDelay) + (6 * pinkDelay) + 800;
       var returnTimer = setTimeout(function() {
-        ['mac_mancha', 'mac_ferrovias', 'mac_cidades', 'mac_circulo'].forEach(function(id) {
-          if (activeLayers[id]) dimLayer(id, 0.6);
-        });
-        if (activeLayers['mac_vias']) dimSubItems('mac_vias', 0.7);
-        // Zoom out to show macrorregião with circles
+        if (!_subpageModeActive) return;
         mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
+        mapInstance.once('moveend', function() {
+          if (!_subpageModeActive) return;
+          ['mac_mancha', 'mac_ferrovias', 'mac_cidades', 'mac_circulo'].forEach(function(id) {
+            if (!activeLayers[id]) {
+              toggleLayer(id);
+              _wasToggledBySubpage[id] = true;
+            }
+            saveLayerOptions(id);
+            dimLayer(id, 0.15);
+          });
+          if (subLayers['mac_vias']) {
+            if (!activeLayers['mac_vias']) {
+              toggleLayer('mac_vias');
+              _wasToggledBySubpage['mac_vias'] = true;
+            }
+            var sl = subLayers['mac_vias'];
+            Object.keys(sl.items).forEach(function(itemId) {
+              if (!sl.active[itemId]) toggleSubItem('mac_vias', itemId);
+            });
+            saveSubItemOptions('mac_vias');
+            dimSubItems('mac_vias', 0.3);
+          }
+        });
       }, totalDelay);
       _staggerTimers.push(returnTimer);
     }
