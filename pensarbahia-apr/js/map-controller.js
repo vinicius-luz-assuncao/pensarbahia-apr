@@ -1214,7 +1214,7 @@ function switchSlide(index) {
     var savedView = null;
     try { var v = localStorage.getItem('pensarbahia_slide' + index + '_pos'); if (v) savedView = JSON.parse(v); } catch(e) {}
     if (savedView) {
-      if (index === 4) { savedView.zoom = 12; savedView.center[0] = -12.74; }
+      if (index === 4) { savedView.center[0] = -12.72; savedView.center[1] = -38.44; savedView.zoom = 12; }
       mapInstance.flyTo(savedView.center, savedView.zoom, { duration: 1.5 });
     } else if (index === 1) {
       mapInstance.flyTo([-15.0, -60.0], 4, { duration: 2 });
@@ -1223,9 +1223,9 @@ function switchSlide(index) {
     } else if (index === 3) {
       mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
     } else if (index === 4) {
-      mapInstance.flyTo([-12.74, -38.46107], 12, { duration: 2 });
+      mapInstance.flyTo([-12.72, -38.44], 12, { duration: 2 });
     } else if (index === 5) {
-      mapInstance.flyTo([-12.74, -38.46107], 12, { duration: 2 });
+      mapInstance.flyTo([-12.72, -38.44], 12, { duration: 2 });
     }
     // Unlock map — user reposiciona manualmente
     mapInstance.once('moveend', function() {
@@ -1494,7 +1494,7 @@ function disableSubpageMode() {
   if (_ciaCircleEditMode) toggleCiaCircleEdit(false);
 
   _dontSaveNextMove = true;
-  mapInstance.flyTo([-12.74, -38.46107], 12, { duration: 2 });
+  mapInstance.flyTo([-12.72, -38.44], 12, { duration: 2 });
   mapInstance.once('moveend', function() {
     if (currentSlide === 4) { lockMapView(); }
   });
