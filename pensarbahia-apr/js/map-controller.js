@@ -1903,16 +1903,16 @@ var PRESENTATION_STEPS = [
   { slide: 1, layers: ['int_brasil', 'int_bahia', 'int_cidades', 'route_vli', 'route_fiol', 'route_transno', 'route_nortesul', 'route_fico'], video: '1.mp4' },
 
   // Slide 3 — Macrorregião
-  { slide: 3, layers: ['mac_mancha'], video: '6.mp4' },
-  { slide: 3, layers: ['mac_mancha', 'mac_cidades'], video: '6.mp4' },
-  { slide: 3, layers: ['mac_mancha', 'mac_cidades'], video: '6.mp4',
+  { slide: 3, layers: ['mac_mancha'], video: '6.mp4', delay: 2000 },
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades'], video: '6.mp4', delay: 2000 },
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades'], video: '6.mp4', delay: 2000,
     subItems: { 'mac_vias': ['RODOVIAS'] } },
-  { slide: 3, layers: ['mac_mancha', 'mac_cidades'], video: '6.mp4',
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades'], video: '6.mp4', delay: 2000,
     subItems: { 'mac_vias': ['RODOVIAS', 'PONTE'] } },
-  { slide: 3, layers: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4' },
-  { slide: 3, layers: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4',
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4', delay: 2000 },
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4', delay: 2000,
     subItems: { 'mac_vias': ['RODOVIAS', 'PONTE', 'RODOVIA NAZARÉ-VALENÇA'] } },
-  { slide: 3, layers: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias', 'mac_circulo'], video: '8.mp4',
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias', 'mac_circulo'], video: '8.mp4', delay: 2000,
     subItems: { 'mac_vias': ['RODOVIAS', 'PONTE', 'RODOVIA NAZARÉ-VALENÇA'] } },
 
   // Slide 4 — Parque BTS
