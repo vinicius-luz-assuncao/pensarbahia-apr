@@ -1192,9 +1192,9 @@ function switchSlide(index) {
     } else if (index === 5) {
       mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
     }
-    // Lock map after flyTo — only slide 3 (Macrorregião) remains unlocked
+    // Lock map after flyTo for all slides
     mapInstance.once('moveend', function() {
-      if (index === 3) { unlockMapView(); } else { lockMapView(); }
+      lockMapView();
     });
     setTimeout(function() { mapInstance.invalidateSize(); }, 200);
   }
