@@ -174,91 +174,95 @@ function loadLayer(lc) {
         var center = saved && saved.center ? L.latLng(saved.center[0], saved.center[1]) : L.latLng(lc.center[0], lc.center[1]);
         var radius = (saved && saved.radius != null) ? saved.radius : lc.radius;
         var color = lc.color || '#f39c12';
+        var isFixed = lc.fixed === true;
 
         var circle = L.circle(center, { radius: radius, color: color, weight: lc.weight || 2, fillColor: color, fillOpacity: 0.08 });
-
-        function getRightEdge(c, r) {
-          var R = 6371000;
-          var lat = c.lat * Math.PI / 180;
-          var d = r / R;
-          return L.latLng(c.lat, c.lng + d / Math.cos(lat) * 180 / Math.PI);
-        }
-
-        var resizer = L.marker(getRightEdge(center, radius), {
-          icon: L.divIcon({
-            className: 'circle-resize-handle',
-            html: '<div style="width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid ' + color + ';cursor:nesw-resize;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
-            iconSize: [14, 14],
-            iconAnchor: [7, 7]
-          }),
-          draggable: true
-        });
-
-        var group = L.layerGroup([circle, resizer]);
+        var group = L.layerGroup([circle]);
         mapLayers[lc.id] = group;
         group._isCircleLayer = true;
 
-        function saveCircle() {
-          var c = circle.getLatLng();
-          var r = circle.getRadius();
-          try {
-            localStorage.setItem('pensarbahia_circle_' + lc.id, JSON.stringify({ center: [c.lat, c.lng], radius: r }));
-          } catch(e) {}
-        }
-
-        function updateResizer() {
-          var c = circle.getLatLng();
-          var r = circle.getRadius();
-          resizer.setLatLng(getRightEdge(c, r));
-        }
-
-        // Drag the circle itself
-        var dragging = false, dragStart = null, origCenter = null;
-        circle.on('mousedown', function(e) {
-          if (e.originalEvent.button !== 0) return;
-          dragging = true;
-          dragStart = e.latlng;
-          origCenter = circle.getLatLng();
-          if (mapInstance.dragging) mapInstance.dragging.disable();
-          L.DomEvent.stopPropagation(e.originalEvent);
-        });
-
-        mapInstance.on('mousemove', function(e) {
-          if (!dragging) return;
-          var lat = origCenter.lat + (e.latlng.lat - dragStart.lat);
-          var lng = origCenter.lng + (e.latlng.lng - dragStart.lng);
-          circle.setLatLng([lat, lng]);
-          updateResizer();
-        });
-
-        mapInstance.on('mouseup', function() {
-          if (dragging) {
-            dragging = false;
-            if (mapInstance.dragging) mapInstance.dragging.enable();
-            saveCircle();
+        if (!isFixed) {
+          function getRightEdge(c, r) {
+            var R = 6371000;
+            var lat = c.lat * Math.PI / 180;
+            var d = r / R;
+            return L.latLng(c.lat, c.lng + d / Math.cos(lat) * 180 / Math.PI);
           }
-        });
 
-        // Resize via draggable marker
-        resizer.on('drag', function() {
-          var c = circle.getLatLng();
-          var p = resizer.getLatLng();
-          var R = 6371000;
-          var lat1 = c.lat * Math.PI / 180;
-          var lng1 = c.lng * Math.PI / 180;
-          var lat2 = p.lat * Math.PI / 180;
-          var lng2 = p.lng * Math.PI / 180;
-          var dlat = lat2 - lat1;
-          var dlng = lng2 - lng1;
-          var a = Math.sin(dlat/2) * Math.sin(dlat/2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlng/2) * Math.sin(dlng/2);
-          var dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          circle.setRadius(Math.max(dist, 100));
-        });
+          var resizer = L.marker(getRightEdge(center, radius), {
+            icon: L.divIcon({
+              className: 'circle-resize-handle',
+              html: '<div style="width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid ' + color + ';cursor:nesw-resize;box-shadow:0 1px 4px rgba(0,0,0,0.4)"></div>',
+              iconSize: [14, 14],
+              iconAnchor: [7, 7]
+            }),
+            draggable: true
+          });
+          group.addLayer(resizer);
 
-        resizer.on('dragend', function() {
-          saveCircle();
-          updateResizer();
-        });
+          function saveCircle() {
+            var c = circle.getLatLng();
+            var r = circle.getRadius();
+            try {
+              localStorage.setItem('pensarbahia_circle_' + lc.id, JSON.stringify({ center: [c.lat, c.lng], radius: r }));
+            } catch(e) {}
+          }
+
+          function updateResizer() {
+            var c = circle.getLatLng();
+            var r = circle.getRadius();
+            resizer.setLatLng(getRightEdge(c, r));
+          }
+
+          // Drag the circle itself
+          var dragging = false, dragStart = null, origCenter = null;
+          circle.on('mousedown', function(e) {
+            if (e.originalEvent.button !== 0) return;
+            if (mapInstance.dragging && !mapInstance.dragging.enabled()) return;
+            dragging = true;
+            dragStart = e.latlng;
+            origCenter = circle.getLatLng();
+            if (mapInstance.dragging) mapInstance.dragging.disable();
+            L.DomEvent.stopPropagation(e.originalEvent);
+          });
+
+          mapInstance.on('mousemove', function(e) {
+            if (!dragging) return;
+            var lat = origCenter.lat + (e.latlng.lat - dragStart.lat);
+            var lng = origCenter.lng + (e.latlng.lng - dragStart.lng);
+            circle.setLatLng([lat, lng]);
+            updateResizer();
+          });
+
+          mapInstance.on('mouseup', function() {
+            if (dragging) {
+              dragging = false;
+              if (mapInstance.dragging) mapInstance.dragging.enable();
+              saveCircle();
+            }
+          });
+
+          // Resize via draggable marker
+          resizer.on('drag', function() {
+            var c = circle.getLatLng();
+            var p = resizer.getLatLng();
+            var R = 6371000;
+            var lat1 = c.lat * Math.PI / 180;
+            var lng1 = c.lng * Math.PI / 180;
+            var lat2 = p.lat * Math.PI / 180;
+            var lng2 = p.lng * Math.PI / 180;
+            var dlat = lat2 - lat1;
+            var dlng = lng2 - lng1;
+            var a = Math.sin(dlat/2) * Math.sin(dlat/2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlng/2) * Math.sin(dlng/2);
+            var dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            circle.setRadius(Math.max(dist, 100));
+          });
+
+          resizer.on('dragend', function() {
+            saveCircle();
+            updateResizer();
+          });
+        }
 
         if (activeLayers[lc.id]) mapInstance.addLayer(group);
       })(lc);
@@ -1188,9 +1192,9 @@ function switchSlide(index) {
     } else if (index === 5) {
       mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
     }
-    // Unlock map for slides 1-4 after flyTo (user can reposition freely)
+    // Lock map after flyTo — only slide 3 (Macrorregião) remains unlocked
     mapInstance.once('moveend', function() {
-      if (index >= 1 && index <= 4) { unlockMapView(); } else { lockMapView(); }
+      if (index === 3) { unlockMapView(); } else { lockMapView(); }
     });
     setTimeout(function() { mapInstance.invalidateSize(); }, 200);
   }
@@ -1456,7 +1460,7 @@ function disableSubpageMode() {
   _dontSaveNextMove = true;
   mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
   mapInstance.once('moveend', function() {
-    if (currentSlide === 4) { unlockMapView(); }
+    if (currentSlide === 4) { lockMapView(); }
   });
 }
 
