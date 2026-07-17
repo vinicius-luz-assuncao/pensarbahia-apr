@@ -566,7 +566,7 @@ function loadBTS(lc) {
         var label = L.marker([labelLat, labelLng], {
           icon: L.divIcon({
             className: 'route-label',
-            html: '<span style="display:inline-block;background:' + lblColor + ';color:#fff;padding:2px 8px;border-radius:3px;font-size:12px;font-weight:700;white-space:nowrap;border:1px solid rgba(0,0,0,0.3);box-shadow:0 1px 3px rgba(0,0,0,0.3)">' + lc.label + '</span>',
+            html: '<span style="display:inline-block;background:' + lblColor + ';color:#fff;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:700;white-space:nowrap;border:1px solid rgba(0,0,0,0.3);box-shadow:0 1px 3px rgba(0,0,0,0.3);transform:translate(-50%,-50%)">' + lc.label + '</span>',
             iconSize: [0, 0],
             iconAnchor: [0, 0]
           })
