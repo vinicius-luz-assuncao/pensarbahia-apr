@@ -1912,7 +1912,7 @@ var PRESENTATION_STEPS = [
   { slide: 3, layers: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4' },
   { slide: 3, layers: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias'], video: '7.mp4',
     subItems: { 'mac_vias': ['RODOVIAS', 'PONTE', 'RODOVIA NAZARÉ-VALENÇA'] } },
-  { slide: 3, layers: ['mac_cidades', 'mac_vias', 'mac_ferrovias', 'mac_circulo'], video: '8.mp4',
+  { slide: 3, layers: ['mac_mancha', 'mac_cidades', 'mac_vias', 'mac_ferrovias', 'mac_circulo'], video: '8.mp4',
     subItems: { 'mac_vias': ['RODOVIAS', 'PONTE', 'RODOVIA NAZARÉ-VALENÇA'] } },
 
   // Slide 4 — Parque BTS
