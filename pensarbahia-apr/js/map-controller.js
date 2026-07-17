@@ -1166,12 +1166,10 @@ function switchSlide(index) {
   if (!mapInstance) return;
   if (index >= 1) {
     toggleGallery(false); toggleCiaNorte(false);
-    // Unlock map for slides 3 and 4 (dragable)
-    if (index === 3 || index === 4) { unlockMapView(); } else { lockMapView(); }
     var savedView = null;
     try { var v = localStorage.getItem('pensarbahia_slide' + index + '_view'); if (v) savedView = JSON.parse(v); } catch(e) {}
     if (savedView) {
-      mapInstance.setView(savedView.center, savedView.zoom, { duration: 2 });
+      mapInstance.flyTo(savedView.center, savedView.zoom, { duration: 1.5 });
     } else if (index === 1) {
       mapInstance.flyTo([-15.0, -60.0], 4, { duration: 2 });
     } else if (index === 2) {
@@ -1183,6 +1181,10 @@ function switchSlide(index) {
     } else if (index === 5) {
       mapInstance.flyTo([-12.76878, -38.46107], 12, { duration: 2 });
     }
+    // Unlock/lock map after flyTo completes
+    mapInstance.once('moveend', function() {
+      if (index === 3 || index === 4) { unlockMapView(); } else { lockMapView(); }
+    });
     setTimeout(function() { mapInstance.invalidateSize(); }, 200);
   }
 }
