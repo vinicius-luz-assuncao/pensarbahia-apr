@@ -229,7 +229,7 @@ const LAYER_GROUPS = [
           { id: 'circ_porto_aratu', label: 'Terminal Aratu', center: [-12.8000, -38.4833], radius: 3000, color: '#e91e93' },
           { id: 'circ_porto_madre', label: 'Madre Deus', center: [-12.7333, -38.6167], radius: 3000, color: '#e91e93' },
           { id: 'circ_porto_saoroque', label: 'S\u00e3o Roque', center: [-12.6167, -38.6833], radius: 3000, color: '#e91e93' },
-          { id: 'circ_porto_saoroquepg', label: 'S\u00e3o Roque de Paragua\u00e7u', center: [-12.73, -38.65], radius: 3000, color: '#e91e93' }
+          { id: 'circ_porto_saoroquepg', label: 'S\u00e3o Roque de Paragua\u00e7u', center: [-12.85, -38.85], radius: 3000, color: '#e91e93' }
         ]
       }
     ]
