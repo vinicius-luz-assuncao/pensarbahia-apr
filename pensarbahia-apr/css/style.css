@@ -1096,7 +1096,8 @@ html, body {
 
 .route-label { background: none !important; border: none !important; }
 .route-label span { display: inline-block; }
-.subpage-hide-labels .route-label { display: none !important; }
+.subpage-hide-labels .route-label,
+.subpage-hide-labels .city-label { display: none !important; }
 
 /* ============================================================
    VIDEO OVERLAYS (floating over map, mix-blend-mode multiply)
