@@ -6,7 +6,7 @@ let fetchCache = {};
 var subLayers = {};
 var lastToggled = null;
 var bahiaOutlineLayer = null;
-var CACHE_BUSTER = '6';
+var CACHE_BUSTER = '7';
 
 function videoUrl(file) { return 'videos/' + file + '?v=' + CACHE_BUSTER; }
 function videoFileFromSrc(src) { return src.split('/').pop().split('?')[0]; }
@@ -1222,7 +1222,6 @@ function switchSlide(index) {
     var savedView = null;
     try { var v = localStorage.getItem('pensarbahia_slide' + index + '_pos'); if (v) savedView = JSON.parse(v); } catch(e) {}
     if (savedView && savedView.center && savedView.center.length === 2) {
-      if (index === 4) savedView.zoom = 12;
       mapInstance.flyTo(savedView.center, savedView.zoom, { duration: 1.5 });
     } else if (index === 1) {
       mapInstance.flyTo([-15.0, -60.0], 4, { duration: 2 });
@@ -1253,7 +1252,6 @@ function saveCurrentMapView() {
   if (!mapInstance || currentSlide < 1 || currentSlide > 5) return;
   var c = mapInstance.getCenter();
   var z = mapInstance.getZoom();
-  if (currentSlide === 4) z = 12;
   try {
     localStorage.setItem('pensarbahia_slide' + currentSlide + '_pos', JSON.stringify({ center: [c.lat, c.lng], zoom: z }));
   } catch(e) {}
@@ -1503,8 +1501,8 @@ function disableSubpageMode() {
 
   _dontSaveNextMove = true;
   var center, zoom;
-  try { var sv = JSON.parse(localStorage.getItem('pensarbahia_slide4_pos')); if (sv && sv.center && sv.center.length === 2) { center = sv.center; zoom = 12; } } catch(e) {}
-  mapInstance.setView(center || [-12.76878, -38.42], zoom || 12);
+  try { var sv = JSON.parse(localStorage.getItem('pensarbahia_slide4_pos')); if (sv && sv.center && sv.center.length === 2) { center = sv.center; zoom = sv.zoom; } } catch(e) {}
+  mapInstance.setView(center || [-12.76878, -38.42], zoom || 9);
   if (currentSlide === 4) { lockMapView(); }
 }
 
