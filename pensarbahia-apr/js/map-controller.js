@@ -1457,6 +1457,7 @@ function saveSubpageView() {
 }
 
 function disableSubpageMode() {
+  if (!_subpageModeActive) return;
   _subpageModeActive = false;
   document.body.classList.remove('subpage-hide-labels');
   document.querySelectorAll('.video-overlay').forEach(function(el) { el.style.pointerEvents = ''; });
