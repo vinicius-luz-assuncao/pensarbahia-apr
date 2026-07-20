@@ -1234,9 +1234,15 @@ function switchSlide(index) {
     } else if (index === 5) {
       mapInstance.flyTo([-12.76878, -38.42], 12, { duration: 2 });
     }
-    // Unlock map for slides 3 and 4 (user can pan/zoom); lock others
+    // Unlock map for slides 3 and 4 if not previously locked by user; lock others
     mapInstance.once('moveend', function() {
-      if (index === 3 || index === 4) { unlockMapView(); } else { lockMapView(); }
+      if (index === 3 || index === 4) {
+        var locked;
+        try { locked = localStorage.getItem('pensarbahia_slide' + index + '_locked'); } catch(e) {}
+        if (locked === 'true') { lockMapView(); } else { unlockMapView(); }
+      } else {
+        lockMapView();
+      }
     });
     setTimeout(function() { mapInstance.invalidateSize(); }, 200);
   }
@@ -2646,8 +2652,10 @@ document.addEventListener('keydown', function(e) {
     lockMapView();
     saveCurrentMapView();
     if (_subpageModeActive) saveSubpageView();
+    try { localStorage.setItem('pensarbahia_slide' + currentSlide + '_locked', 'true'); } catch(e) {}
   } else {
     unlockMapView();
+    try { localStorage.setItem('pensarbahia_slide' + currentSlide + '_locked', 'false'); } catch(e) {}
   }
 });
 
