@@ -1152,6 +1152,9 @@ function switchSlide(index) {
   if (currentSlide === 4) {
     if (_ciaCircleEditMode) toggleCiaCircleEdit(false);
     if (activeLayers['cia_norte_circle']) toggleLayer('cia_norte_circle');
+    // Clear bts restore flags so disableSubpageMode doesn't re-activate them
+    delete _wasToggledBySubpage['bts_ferrovias'];
+    delete _wasToggledBySubpage['bts_rodovias'];
     disableSubpageMode();
   }
   // Save Bahia image position when leaving slide 2
