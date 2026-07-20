@@ -2646,3 +2646,17 @@ document.addEventListener('keydown', function(e) {
   stopAutoPlay();
 });
 
+// L key: lock/unlock map on slides 3 and 4
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'l' && e.key !== 'L') return;
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+  if (currentSlide !== 3 && currentSlide !== 4) return;
+  if (!mapInstance) return;
+  if (mapInstance.dragging.enabled()) {
+    lockMapView();
+    saveCurrentMapView();
+  } else {
+    unlockMapView();
+  }
+});
+
