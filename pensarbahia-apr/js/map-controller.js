@@ -1368,6 +1368,8 @@ function dimSubItems(parentId, opacity) {
 function enableSubpageMode() {
   _subpageModeActive = true;
   document.body.classList.add('subpage-hide-labels');
+  // Allow clicks to pass through video overlay to circles/map
+  document.querySelectorAll('.video-overlay').forEach(function(el) { el.style.pointerEvents = 'none'; });
   // Enable map interaction immediately
   unlockMapView();
 
@@ -1443,6 +1445,7 @@ function saveSubpageView() {
 function disableSubpageMode() {
   _subpageModeActive = false;
   document.body.classList.remove('subpage-hide-labels');
+  document.querySelectorAll('.video-overlay').forEach(function(el) { el.style.pointerEvents = ''; });
   // Remove move listener (map locking handled by switchSlide)
   mapInstance.off('moveend', saveSubpageView);
 
