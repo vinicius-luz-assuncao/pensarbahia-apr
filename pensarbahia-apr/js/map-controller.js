@@ -2659,3 +2659,34 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
+// D key: debug — show saved positions in console
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'd' && e.key !== 'D') return;
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+  console.log('=== DEBUG ===');
+  console.log('currentSlide:', currentSlide);
+  var c = mapInstance ? mapInstance.getCenter() : null;
+  var z = mapInstance ? mapInstance.getZoom() : null;
+  console.log('Map center:', c ? [c.lat, c.lng] : 'N/A', 'zoom:', z);
+  try { var s4 = localStorage.getItem('pensarbahia_slide4_pos'); console.log('slide4_pos:', s4 ? JSON.parse(s4) : 'NOT SET'); } catch(e) { console.log('slide4_pos: ERROR'); }
+  try { var s3 = localStorage.getItem('pensarbahia_slide3_pos'); console.log('slide3_pos:', s3 ? JSON.parse(s3) : 'NOT SET'); } catch(e) { console.log('slide3_pos: ERROR'); }
+  try { var sv = localStorage.getItem('pensarbahia_subpage_view'); console.log('subpage_view:', sv ? JSON.parse(sv) : 'NOT SET'); } catch(e) { console.log('subpage_view: ERROR'); }
+  try { var locked = localStorage.getItem('pensarbahia_slide4_locked'); console.log('slide4_locked:', locked); } catch(e) {}
+  console.log('_subpageModeActive:', _subpageModeActive);
+  console.log('=== END DEBUG ===');
+});
+
+// Shift+R: reset slide 4 position to Simões Filho default
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'R' && e.key !== 'r') return;
+  if (!e.shiftKey) return;
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+  try { localStorage.removeItem('pensarbahia_slide4_pos'); } catch(e) {}
+  try { localStorage.removeItem('pensarbahia_slide4_locked'); } catch(e) {}
+  try { localStorage.removeItem('pensarbahia_subpage_view'); } catch(e) {}
+  if (currentSlide === 4 && mapInstance) {
+    mapInstance.setView([-12.76878, -38.42], 12);
+  }
+  alert('Posição do slide 4 resetada para padrão (Simões Filho).');
+});
+
