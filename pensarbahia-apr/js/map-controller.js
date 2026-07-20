@@ -1412,7 +1412,7 @@ function enableSubpageMode() {
         _wasToggledBySubpage[id] = true;
       }
       saveLayerOptions(id);
-      dimLayer(id, 0.15);
+      dimLayer(id, 0.3);
     });
     if (subLayers['mac_vias']) {
       if (!activeLayers['mac_vias']) {
@@ -1424,7 +1424,7 @@ function enableSubpageMode() {
         if (!sl.active[itemId]) toggleSubItem('mac_vias', itemId);
       });
       saveSubItemOptions('mac_vias');
-      dimSubItems('mac_vias', 0.3);
+      dimSubItems('mac_vias', 0.5);
     }
   });
   mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
