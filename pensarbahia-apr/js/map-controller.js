@@ -1393,6 +1393,14 @@ function enableSubpageMode() {
     }
   });
 
+  // Turn off residual circles from Parque BTS that don't belong in subpage view
+  ['bts_circulo_fixo', 'cia_norte_circle'].forEach(function(id) {
+    if (activeLayers[id]) {
+      toggleLayer(id);
+      _wasToggledBySubpage[id] = true;
+    }
+  });
+
   // Show subpage circles immediately (no staggered animation)
   if (!activeLayers['subpage_circles']) {
     activeLayers['subpage_circles'] = true;
@@ -1476,15 +1484,13 @@ function disableSubpageMode() {
   restoreSubItemOptions('mac_vias');
 
   // Restore bts layers if we turned them off
-  ['bts_ferrovias', 'bts_rodovias'].forEach(function(id) {
+  ['bts_ferrovias', 'bts_rodovias', 'bts_circulo_fixo', 'cia_norte_circle'].forEach(function(id) {
     if (_wasToggledBySubpage[id]) {
       toggleLayer(id);
       delete _wasToggledBySubpage[id];
     }
   });
 
-  // Deactivate CIA NORTE circle if active
-  if (activeLayers['cia_norte_circle']) toggleLayer('cia_norte_circle');
   if (_ciaCircleEditMode) toggleCiaCircleEdit(false);
 
   _dontSaveNextMove = true;
