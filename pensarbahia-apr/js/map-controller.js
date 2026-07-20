@@ -1212,6 +1212,7 @@ function switchSlide(index) {
   }
 
   currentSlide = index;
+  document.dispatchEvent(new CustomEvent('slideChange', { detail: index }));
 
   if (!mapInstance) return;
   if (index >= 1) {
@@ -2689,4 +2690,45 @@ document.addEventListener('keydown', function(e) {
   }
   alert('Posição do slide 4 resetada para padrão (Simões Filho).');
 });
+
+/* ---- Coordinate debug panel (slides 3 & 4) ---- */
+function updateCoordDebug() {
+  var el = document.getElementById('coord-debug');
+  if (!el || !mapInstance) return;
+  var c = mapInstance.getCenter();
+  el.textContent = c.lat.toFixed(6) + ', ' + c.lng.toFixed(6) + ' [zoom ' + mapInstance.getZoom() + ']  📋';
+}
+function copyCoords() {
+  var el = document.getElementById('coord-debug');
+  if (!el) return;
+  var txt = el.textContent.replace('  📋', '').trim();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(function() {
+      var orig = el.textContent;
+      el.textContent = '✅ Copiado!';
+      el.style.background = 'rgba(0,120,0,0.85)';
+      setTimeout(function() { el.textContent = orig; el.style.background = ''; }, 1500);
+    });
+  }
+}
+// Toggle visibility on slide change and update on moveend
+document.addEventListener('slideChange', function(e) {
+  var el = document.getElementById('coord-debug');
+  if (!el) return;
+  var idx = e.detail;
+  el.style.display = (idx === 3 || idx === 4) ? 'block' : 'none';
+  if (idx === 3 || idx === 4) updateCoordDebug();
+});
+// Also update when map moves
+if (mapInstance) {
+  mapInstance.on('moveend', function() {
+    var el = document.getElementById('coord-debug');
+    if (el && el.style.display === 'block') updateCoordDebug();
+  });
+}
+// Initial setup: wait for DOM
+setTimeout(function() {
+  var el = document.getElementById('coord-debug');
+  if (el && (currentSlide === 3 || currentSlide === 4)) { el.style.display = 'block'; updateCoordDebug(); }
+}, 500);
 
