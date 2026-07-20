@@ -6,7 +6,7 @@ let fetchCache = {};
 var subLayers = {};
 var lastToggled = null;
 var bahiaOutlineLayer = null;
-var CACHE_BUSTER = '7';
+var CACHE_BUSTER = '8';
 
 function videoUrl(file) { return 'videos/' + file + '?v=' + CACHE_BUSTER; }
 function videoFileFromSrc(src) { return src.split('/').pop().split('?')[0]; }
@@ -1250,11 +1250,14 @@ function switchSlide(index) {
 
 function saveCurrentMapView() {
   if (!mapInstance || currentSlide < 1 || currentSlide > 5) return;
-  var c = mapInstance.getCenter();
-  var z = mapInstance.getZoom();
   try {
-    localStorage.setItem('pensarbahia_slide' + currentSlide + '_pos', JSON.stringify({ center: [c.lat, c.lng], zoom: z }));
-  } catch(e) {}
+    var c = mapInstance.getCenter();
+    var z = mapInstance.getZoom();
+    var data = JSON.stringify({ center: [c.lat, c.lng], zoom: z });
+    localStorage.setItem('pensarbahia_slide' + currentSlide + '_pos', data);
+  } catch(e) {
+    console.error('saveCurrentMapView error:', e);
+  }
 }
 
 function lockMapView() {
@@ -2647,10 +2650,11 @@ document.addEventListener('keydown', function(e) {
   if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
   if (currentSlide !== 3 && currentSlide !== 4) return;
   if (!mapInstance) return;
+  // Always save current position before toggling
+  saveCurrentMapView();
+  if (_subpageModeActive) saveSubpageView();
   if (mapInstance.dragging.enabled()) {
     lockMapView();
-    saveCurrentMapView();
-    if (_subpageModeActive) saveSubpageView();
     try { localStorage.setItem('pensarbahia_slide' + currentSlide + '_locked', 'true'); } catch(e) {}
   } else {
     unlockMapView();
