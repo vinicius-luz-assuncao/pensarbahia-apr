@@ -1388,64 +1388,43 @@ function enableSubpageMode() {
     }
   });
 
-  // Show subpage circles staggered (azuis primeiro, rosas depois)
+  // Show subpage circles immediately (no staggered animation)
   if (!activeLayers['subpage_circles']) {
     activeLayers['subpage_circles'] = true;
     document.querySelectorAll('.layer-btn[data-layer="subpage_circles"]').forEach(function(btn) { btn.classList.add('active'); });
     syncPageButtons('subpage_circles');
     _wasToggledBySubpage['subpage_circles'] = true;
-
     var group = mapLayers['subpage_circles'];
     if (group) {
-      var allCircles = group.getLayers();
-      _staggerTimers = [];
-      var blueDelay = 2000;
-      var pinkDelay = 1800;
-      allCircles.forEach(function(circle, i) {
-        var delay = i < 5 ? i * blueDelay : (5 * blueDelay) + (i - 5) * pinkDelay;
-        var zoom = i < 5 ? 12 : 13;
-        var timer = setTimeout(function() {
-          mapInstance.addLayer(circle);
-          var c = circle.getLatLng();
-          mapInstance.flyTo(c, zoom, { duration: 1.5 });
-          circle.openTooltip();
-          var closeTimer = setTimeout(function() { circle.closeTooltip(); }, 1500);
-          _staggerTimers.push(closeTimer);
-        }, delay);
-        _staggerTimers.push(timer);
-      });
-      // After last circle, zoom out and activate macrorregião layers (low opacity)
-      var totalDelay = (5 * blueDelay) + (6 * pinkDelay) + 800;
-      var returnTimer = setTimeout(function() {
-        if (!_subpageModeActive) return;
-        mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
-        mapInstance.once('moveend', function() {
-          if (!_subpageModeActive) return;
-          ['mac_mancha', 'mac_ferrovias', 'mac_cidades', 'mac_circulo'].forEach(function(id) {
-            if (!activeLayers[id]) {
-              toggleLayer(id);
-              _wasToggledBySubpage[id] = true;
-            }
-            saveLayerOptions(id);
-            dimLayer(id, 0.15);
-          });
-          if (subLayers['mac_vias']) {
-            if (!activeLayers['mac_vias']) {
-              toggleLayer('mac_vias');
-              _wasToggledBySubpage['mac_vias'] = true;
-            }
-            var sl = subLayers['mac_vias'];
-            Object.keys(sl.items).forEach(function(itemId) {
-              if (!sl.active[itemId]) toggleSubItem('mac_vias', itemId);
-            });
-            saveSubItemOptions('mac_vias');
-            dimSubItems('mac_vias', 0.3);
-          }
-        });
-      }, totalDelay);
-      _staggerTimers.push(returnTimer);
+      group.eachLayer(function(circle) { mapInstance.addLayer(circle); });
     }
   }
+
+  // Show macrorregião layers and fly to overview
+  mapInstance.once('moveend', function afterSubpageFly() {
+    if (!_subpageModeActive) { mapInstance.off('moveend', afterSubpageFly); return; }
+    ['mac_mancha', 'mac_ferrovias', 'mac_cidades', 'mac_circulo'].forEach(function(id) {
+      if (!activeLayers[id]) {
+        toggleLayer(id);
+        _wasToggledBySubpage[id] = true;
+      }
+      saveLayerOptions(id);
+      dimLayer(id, 0.15);
+    });
+    if (subLayers['mac_vias']) {
+      if (!activeLayers['mac_vias']) {
+        toggleLayer('mac_vias');
+        _wasToggledBySubpage['mac_vias'] = true;
+      }
+      var sl = subLayers['mac_vias'];
+      Object.keys(sl.items).forEach(function(itemId) {
+        if (!sl.active[itemId]) toggleSubItem('mac_vias', itemId);
+      });
+      saveSubItemOptions('mac_vias');
+      dimSubItems('mac_vias', 0.3);
+    }
+  });
+  mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
 
   // Save position on map move
   mapInstance.on('moveend', saveSubpageView);
