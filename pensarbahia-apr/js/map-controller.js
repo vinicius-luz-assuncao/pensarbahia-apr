@@ -1371,9 +1371,12 @@ function enableSubpageMode() {
   // Enable map interaction immediately
   unlockMapView();
 
-  // Restore saved subpage view or fly to default (ignore view with zoom < 8)
+  // Restore saved subpage view or fall back to slide 4 saved position or default
   var savedSubpageView = null;
   try { var sv = localStorage.getItem('pensarbahia_subpage_view'); if (sv) savedSubpageView = JSON.parse(sv); } catch(e) {}
+  if (!savedSubpageView || savedSubpageView.zoom < 8) {
+    try { var sv2 = localStorage.getItem('pensarbahia_slide4_pos'); if (sv2) savedSubpageView = JSON.parse(sv2); } catch(e) {}
+  }
   if (savedSubpageView && savedSubpageView.zoom >= 8) {
     mapInstance.setView(savedSubpageView.center, savedSubpageView.zoom);
   } else {
@@ -2634,6 +2637,7 @@ document.addEventListener('keydown', function(e) {
   if (mapInstance.dragging.enabled()) {
     lockMapView();
     saveCurrentMapView();
+    if (_subpageModeActive) saveSubpageView();
   } else {
     unlockMapView();
   }
