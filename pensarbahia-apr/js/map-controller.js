@@ -1501,10 +1501,10 @@ function disableSubpageMode() {
   if (_ciaCircleEditMode) toggleCiaCircleEdit(false);
 
   _dontSaveNextMove = true;
-  mapInstance.flyTo([-12.76878, -38.42], 12, { duration: 2 });
-  mapInstance.once('moveend', function() {
-    if (currentSlide === 4) { lockMapView(); }
-  });
+  var center, zoom;
+  try { var sv = JSON.parse(localStorage.getItem('pensarbahia_slide4_pos')); if (sv && sv.center && sv.center.length === 2) { center = sv.center; zoom = 12; } } catch(e) {}
+  mapInstance.setView(center || [-12.76878, -38.42], zoom || 12);
+  if (currentSlide === 4) { lockMapView(); }
 }
 
 function toggleAllLayers(pageIndex) {
@@ -2605,9 +2605,8 @@ document.addEventListener('keydown', function(e) {
   }
   if (currentSlide === 4) {
     toggleCiaNorte(false);
-    if (newFile === '10.mp4') { disableSubpageMode(); toggleGallery(true, true); }
-    else if (newFile === '11.mp4') { toggleGallery(false); currentStep = -1; enableSubpageMode(); }
-    else { toggleGallery(false); disableSubpageMode(); }
+    if (newFile === '11.mp4') { toggleGallery(false); currentStep = -1; enableSubpageMode(); }
+    else { if (_subpageModeActive) saveCurrentMapView(); disableSubpageMode(); if (newFile === '10.mp4') toggleGallery(true, true); else toggleGallery(false); }
   }
   // Advance/go back presentation step to match the new video
   if (currentStep >= 0) {
