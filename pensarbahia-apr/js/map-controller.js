@@ -6,7 +6,7 @@ let fetchCache = {};
 var subLayers = {};
 var lastToggled = null;
 var bahiaOutlineLayer = null;
-var CACHE_BUSTER = '9';
+var CACHE_BUSTER = '10';
 
 function videoUrl(file) { return 'videos/' + file + '?v=' + CACHE_BUSTER; }
 function videoFileFromSrc(src) { return src.split('/').pop().split('?')[0]; }
@@ -144,6 +144,8 @@ function initMap() {
     if (currentSlide >= 1 && currentSlide <= 4 && !_subpageModeActive) {
       saveCurrentMapView();
     }
+    var el = document.getElementById('coord-debug');
+    if (el && el.style.display === 'block') updateCoordDebug();
   });
   setTimeout(function() { mapInstance.invalidateSize(); }, 100);
   var loading = document.getElementById('map-loading');
@@ -2723,13 +2725,6 @@ document.addEventListener('slideChange', function(e) {
   el.style.display = (idx === 3 || idx === 4) ? 'block' : 'none';
   if (idx === 3 || idx === 4) updateCoordDebug();
 });
-// Also update when map moves
-if (mapInstance) {
-  mapInstance.on('moveend', function() {
-    var el = document.getElementById('coord-debug');
-    if (el && el.style.display === 'block') updateCoordDebug();
-  });
-}
 // Initial setup: wait for DOM
 setTimeout(function() {
   var el = document.getElementById('coord-debug');
