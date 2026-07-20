@@ -180,7 +180,7 @@ const LAYER_GROUPS = [
       {
         id: 'cia_norte_circle', label: 'C\u00edrculo CIA NORTE',
         type: 'circle-editor', center: [-12.7833, -38.4667], radius: 5000,
-        color: '#3498db', weight: 2,
+        color: '#3498db', weight: 2, fixed: true,
         circleLabel: 'CIA NORTE'
       }
     ]
