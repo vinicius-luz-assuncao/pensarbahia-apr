@@ -228,9 +228,8 @@ const LAYER_GROUPS = [
           { id: 'circ_porto_salvador', label: 'Porto de Salvador', center: [-12.9700, -38.5117], radius: 3000, color: '#e91e93' },
           { id: 'circ_porto_aratu', label: 'Terminal Aratu', center: [-12.8000, -38.4833], radius: 3000, color: '#e91e93' },
           { id: 'circ_porto_madre', label: 'Madre Deus', center: [-12.7333, -38.6167], radius: 3000, color: '#e91e93' },
-          { id: 'circ_porto_candeias', label: 'Candeias', center: [-12.7833, -38.4833], radius: 3000, color: '#e91e93' },
           { id: 'circ_porto_saoroque', label: 'S\u00e3o Roque', center: [-12.6167, -38.6833], radius: 3000, color: '#e91e93' },
-          { id: 'circ_porto_itaparica', label: 'Itaparica', center: [-12.8833, -38.6833], radius: 3000, color: '#e91e93' }
+          { id: 'circ_porto_maragogipe', label: 'Maragogipe', center: [-12.78, -38.92], radius: 3000, color: '#e91e93' }
         ]
       }
     ]
