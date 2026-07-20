@@ -1228,7 +1228,7 @@ function switchSlide(index) {
     } else if (index === 2) {
       mapInstance.flyTo([-12.75689, -39.36401], 8, { duration: 2 });
     } else if (index === 3) {
-      mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
+      mapInstance.flyTo([-12.75689, -39.36401], 8, { duration: 2 });
     } else if (index === 4) {
       mapInstance.flyTo([-12.76878, -38.42], 12, { duration: 2 });
     } else if (index === 5) {
@@ -1736,6 +1736,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Migrate: clear old keys (bad data from previous bugs)
   try { localStorage.removeItem('pensarbahia_slide4_view'); } catch(e) {}
   try { localStorage.removeItem('pensarbahia_slide3_view'); } catch(e) {}
+  try { localStorage.removeItem('pensarbahia_slide3_pos'); } catch(e) {}
   initMap();
   lockMapView();
   buildPageLayers();
