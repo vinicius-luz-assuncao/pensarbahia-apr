@@ -6,7 +6,7 @@ let fetchCache = {};
 var subLayers = {};
 var lastToggled = null;
 var bahiaOutlineLayer = null;
-var CACHE_BUSTER = '8';
+var CACHE_BUSTER = '9';
 
 function videoUrl(file) { return 'videos/' + file + '?v=' + CACHE_BUSTER; }
 function videoFileFromSrc(src) { return src.split('/').pop().split('?')[0]; }
@@ -1387,11 +1387,7 @@ function enableSubpageMode() {
   if (!savedSubpageView || savedSubpageView.zoom < 8) {
     try { var sv2 = localStorage.getItem('pensarbahia_slide4_pos'); if (sv2) savedSubpageView = JSON.parse(sv2); } catch(e) {}
   }
-  if (savedSubpageView && savedSubpageView.zoom >= 8) {
-    mapInstance.setView(savedSubpageView.center, savedSubpageView.zoom);
-  } else {
-    mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
-  }
+  var hasSavedSubpageView = savedSubpageView && savedSubpageView.zoom >= 8;
 
   // Turn off bts_ferrovias and bts_rodovias (Parque Logístico)
   ['bts_ferrovias', 'bts_rodovias'].forEach(function(id) {
@@ -1421,7 +1417,7 @@ function enableSubpageMode() {
     }
   }
 
-  // Show macrorregião layers and fly to overview
+  // Register moveend handler BEFORE any position change
   mapInstance.once('moveend', function afterSubpageFly() {
     if (!_subpageModeActive) { mapInstance.off('moveend', afterSubpageFly); return; }
     ['mac_mancha', 'mac_ferrovias', 'mac_cidades', 'mac_circulo'].forEach(function(id) {
@@ -1445,7 +1441,13 @@ function enableSubpageMode() {
       dimSubItems('mac_vias', 0.5);
     }
   });
-  mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
+
+  // Restore saved position or fly to default overview
+  if (hasSavedSubpageView) {
+    mapInstance.setView(savedSubpageView.center, savedSubpageView.zoom);
+  } else {
+    mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
+  }
 
   // Save position on map move
   mapInstance.on('moveend', saveSubpageView);
