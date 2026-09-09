@@ -6,7 +6,7 @@ let fetchCache = {};
 var subLayers = {};
 var lastToggled = null;
 var bahiaOutlineLayer = null;
-var CACHE_BUSTER = '11';
+var CACHE_BUSTER = '12';
 
 function videoUrl(file) { return 'videos/' + file + '?v=' + CACHE_BUSTER; }
 function videoFileFromSrc(src) { return src.split('/').pop().split('?')[0]; }
@@ -1448,7 +1448,7 @@ function enableSubpageMode() {
   if (hasSavedSubpageView) {
     mapInstance.setView(savedSubpageView.center, savedSubpageView.zoom);
   } else {
-    mapInstance.flyTo([-12.75689, -39.36401], 9, { duration: 2 });
+    mapInstance.flyTo([-12.55, -38.65], 10, { duration: 2 });
   }
 
   // Save position on map move
