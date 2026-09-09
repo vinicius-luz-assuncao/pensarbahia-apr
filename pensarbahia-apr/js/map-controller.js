@@ -6,7 +6,7 @@ let fetchCache = {};
 var subLayers = {};
 var lastToggled = null;
 var bahiaOutlineLayer = null;
-var CACHE_BUSTER = '10';
+var CACHE_BUSTER = '11';
 
 function videoUrl(file) { return 'videos/' + file + '?v=' + CACHE_BUSTER; }
 function videoFileFromSrc(src) { return src.split('/').pop().split('?')[0]; }
@@ -122,8 +122,8 @@ function initMap() {
   mapInstance = L.map('map-container', {
     center: [-13.5, -42.0], zoom: 6, zoomControl: true, attributionControl: true
   });
-  window.osmLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    maxZoom: 18, attribution: '&copy; <a href="https://carto.com/">CARTO</a>'
+  window.osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   });
   window.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 18, attribution: 'Tiles &copy; Esri'
