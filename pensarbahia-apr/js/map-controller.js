@@ -6,7 +6,7 @@ let fetchCache = {};
 var subLayers = {};
 var lastToggled = null;
 var bahiaOutlineLayer = null;
-var CACHE_BUSTER = '12';
+var CACHE_BUSTER = '13';
 
 function videoUrl(file) { return 'videos/' + file + '?v=' + CACHE_BUSTER; }
 function videoFileFromSrc(src) { return src.split('/').pop().split('?')[0]; }
@@ -2648,10 +2648,8 @@ document.addEventListener('keydown', function(e) {
   stopAutoPlay();
 });
 
-// L key: lock/unlock map on slides 3 and 4
-document.addEventListener('keydown', function(e) {
-  if (e.key !== 'l' && e.key !== 'L') return;
-  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+// Lock/unlock map on slides 3 and 4 (shared by L key and Fixar vista button)
+function toggleLockAndSave() {
   if (currentSlide !== 3 && currentSlide !== 4) return;
   if (!mapInstance) return;
   // Always save current position before toggling
@@ -2664,7 +2662,20 @@ document.addEventListener('keydown', function(e) {
     unlockMapView();
     try { localStorage.setItem('pensarbahia_slide' + currentSlide + '_locked', 'false'); } catch(e) {}
   }
+  updateFixViewBtn();
+}
+// L key: lock/unlock map on slides 3 and 4
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'l' && e.key !== 'L') return;
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+  toggleLockAndSave();
 });
+function updateFixViewBtn() {
+  var btn = document.getElementById('fix-view-btn');
+  if (!btn || !mapInstance) return;
+  var locked = mapInstance.dragging && !mapInstance.dragging.enabled();
+  btn.textContent = locked ? '🔓 Destravar mapa' : '🔒 Fixar vista';
+}
 
 // D key: debug — show saved positions in console
 document.addEventListener('keydown', function(e) {
@@ -2703,6 +2714,7 @@ function updateCoordDebug() {
   if (!el || !mapInstance) return;
   var c = mapInstance.getCenter();
   el.textContent = c.lat.toFixed(6) + ', ' + c.lng.toFixed(6) + ' [zoom ' + mapInstance.getZoom() + ']  📋';
+  updateFixViewBtn();
 }
 function copyCoords() {
   var el = document.getElementById('coord-debug');
@@ -2720,14 +2732,22 @@ function copyCoords() {
 // Toggle visibility on slide change and update on moveend
 document.addEventListener('slideChange', function(e) {
   var el = document.getElementById('coord-debug');
+  var btn = document.getElementById('fix-view-btn');
   if (!el) return;
   var idx = e.detail;
-  el.style.display = (idx === 3 || idx === 4) ? 'block' : 'none';
-  if (idx === 3 || idx === 4) updateCoordDebug();
+  var show = (idx === 3 || idx === 4);
+  el.style.display = show ? 'block' : 'none';
+  if (btn) btn.style.display = show ? 'block' : 'none';
+  if (show) updateCoordDebug();
 });
 // Initial setup: wait for DOM
 setTimeout(function() {
   var el = document.getElementById('coord-debug');
-  if (el && (currentSlide === 3 || currentSlide === 4)) { el.style.display = 'block'; updateCoordDebug(); }
+  var btn = document.getElementById('fix-view-btn');
+  if (el && (currentSlide === 3 || currentSlide === 4)) {
+    el.style.display = 'block';
+    if (btn) btn.style.display = 'block';
+    updateCoordDebug();
+  }
 }, 500);
 
